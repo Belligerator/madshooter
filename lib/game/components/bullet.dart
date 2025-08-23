@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 
 class Bullet extends RectangleComponent with HasGameRef<ShootingGame> {
-  static const double speed = 300.0;
+  static const double speed = 200.0;
 
   @override
   Future<void> onLoad() async {
@@ -11,7 +11,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame> {
 
     // Small yellow bullet
     size = Vector2(3, 8);
-    paint = Paint()..color = Colors.yellow;
+    paint = Paint()..color = Colors.green;
   }
 
   @override
