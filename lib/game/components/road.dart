@@ -6,7 +6,7 @@ import '../shooting_game.dart';
 class Road extends Component with HasGameRef<ShootingGame> {
   static const double roadWidth = 200.0;
   static const double laneWidth = roadWidth / 2;
-  static const double scrollSpeed = 400.0;
+  static const double scrollSpeed = 100.0;
 
   late List<RectangleComponent> roadSegments;
   late List<RectangleComponent> laneLines;

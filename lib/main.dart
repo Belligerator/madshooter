@@ -32,6 +32,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late ShootingGame game;
+  bool isPaused = false;
 
   @override
   void initState() {
@@ -55,15 +56,37 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
-        game.pauseGame();
+        _pauseGame();
         break;
       case AppLifecycleState.resumed:
-        game.resumeGame();
+        _resumeGame();
         break;
       case AppLifecycleState.inactive:
       // Don't pause for inactive (e.g., notification pull-down)
         break;
     }
+  }
+
+  void _togglePause() {
+    if (isPaused) {
+      _resumeGame();
+    } else {
+      _pauseGame();
+    }
+  }
+
+  void _pauseGame() {
+    setState(() {
+      isPaused = true;
+    });
+    game.pauseGame();
+  }
+
+  void _resumeGame() {
+    setState(() {
+      isPaused = false;
+    });
+    game.resumeGame();
   }
 
   @override
@@ -82,7 +105,38 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           statusBarIconBrightness: Brightness.light,
         ),
       ),
-      body: GameWidget(game: game),
+      body: Stack(
+        children: [
+          // Game widget
+          GameWidget(game: game),
+          // Pause button overlay
+          Positioned(
+            top: 15,
+            right: 20,
+            child: Container(
+              width: 60,
+              height: 30,
+              child: ElevatedButton(
+                onPressed: _togglePause,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size(60, 30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  isPaused ? '▶️' : '⏸️',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

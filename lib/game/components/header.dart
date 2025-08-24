@@ -18,7 +18,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
     // Set high priority to render on top of everything
     priority = 1000;
 
-    // Create header background
+    // Create header background - solid black without opacity
     background = RectangleComponent(
       size: Vector2(gameRef.size.x, headerHeight),
       position: Vector2(0, 0),

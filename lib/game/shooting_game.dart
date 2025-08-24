@@ -30,7 +30,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   static const int soldiersPerSpawn = 5;
 
   // Barrel spawning variables
-  static const double barrelSpawnInterval = 10.0; // Spawn barrel every 10 seconds
+  static const double barrelSpawnInterval = 15.0; // Spawn barrel every 15 seconds
   double _timeSinceLastBarrelSpawn = 0;
 
   double _timeSinceLastSpawn = 0;
@@ -142,7 +142,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       add(soldier);
     }
 
-    // print('Spawned $soldiersToSpawn soldiers. Total: ${_soldiers.length}');
+    print('Spawned $soldiersToSpawn soldiers. Total: ${_soldiers.length}');
   }
 
   void _spawnBarrel() {
