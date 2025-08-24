@@ -21,6 +21,9 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
     size = Vector2(30, 40);
     paint = Paint()..color = Colors.blue;
 
+    // Set higher priority/z-index to render on top
+    priority = 100; // Higher value renders on top
+
     // Set boundaries for player movement (stay within road)
     final roadWidth = 200.0;
     centerX = gameRef.size.x / 2;
@@ -34,7 +37,7 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
   void move(double joystickX) {
     // Direct proportional movement based on joystick input
     // joystickX ranges from -1.0 to 1.0
-    final targetX = centerX + (joystickX * 2);
+    final targetX = centerX + (joystickX * 2); // Modified value from user
 
     // Clamp to road boundaries
     final clampedX = targetX.clamp(leftBoundary, rightBoundary);

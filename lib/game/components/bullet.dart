@@ -11,9 +11,9 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Small green bullet
+    // Small yellow bullet
     size = Vector2(3, 8);
-    paint = Paint()..color = Colors.green;
+    paint = Paint()..color = Colors.yellow;
 
     // Add collision detection
     add(RectangleHitbox());
@@ -38,6 +38,9 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
 
     // Check if bullet collided with a soldier
     if (other is Soldier) {
+      // Notify game about the kill
+      gameRef.onSoldierKilled();
+
       // Remove both bullet and soldier
       removeFromParent();
       other.removeFromParent();

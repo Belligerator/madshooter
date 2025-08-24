@@ -1,33 +1,39 @@
-import 'package:flame/components.dart';
-import 'package:flame/collisions.dart';
-import 'package:flutter/material.dart';
 import 'dart:math';
+
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
+
 import '../shooting_game.dart';
 
-class Soldier extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
-  static const double speed = 50.0;
+class Soldier extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+  static const double speed = 120.0; // Soldier movement speed, a little faster than road scroll
   static final Random _random = Random();
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Create soldier - smaller than player (20x25 vs player's 30x40)
-    size = Vector2(20, 25);
+    // Create circular soldier - radius of 12 (diameter ~24, similar to previous 20x25 rectangle)
+    radius = 12.0;
     paint = Paint()..color = Colors.red;
 
-    // Add collision detection
-    add(RectangleHitbox());
+    // Set lower priority/z-index to render behind player
+    priority = 50; // Lower value renders behind
 
-    // Spawn at random position within road bounds at top of screen
+    // Add collision detection for circle
+    add(CircleHitbox());
+
+    // Spawn at random position within road bounds at top of game area (below header)
     final roadWidth = 200.0;
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - roadWidth / 2;
-    final rightBound = centerX + roadWidth / 2 - size.x;
+    final leftBound = centerX - roadWidth / 2 + radius; // Account for radius
+    final rightBound = centerX + roadWidth / 2 - radius; // Account for radius
+    final headerHeight = 80.0; // Header height from ShootingGame
 
     // Random X position within road
     final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(randomX, -size.y); // Start just above screen
+    position = Vector2(randomX, -radius * 2); // Start just above screen, account for radius
   }
 
   @override
@@ -38,7 +44,7 @@ class Soldier extends RectangleComponent with HasGameRef<ShootingGame>, Collisio
     position.y += speed * dt;
 
     // Remove soldier when it goes off-screen (bottom)
-    if (position.y > gameRef.size.y) {
+    if (position.y > gameRef.size.y + radius) { // Account for radius
       removeFromParent();
     }
   }

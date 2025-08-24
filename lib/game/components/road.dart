@@ -22,28 +22,34 @@ class Road extends Component with HasGameRef<ShootingGame> {
     laneLines = [];
     trees = [];
 
-    // Create multiple road segments to fill screen + buffer
+    // Create multiple road segments to fill screen + buffer (excluding header)
     final screenHeight = gameRef.size.y;
-    segmentHeight = screenHeight / 4;
+    final gameAreaHeight = screenHeight;
+
+    segmentHeight = gameAreaHeight / 4;
     final segmentCount = 4 + 1; // Extra segments for smooth scrolling
 
     for (int i = 0; i < segmentCount; i++) {
       // Road background
       final roadSegment = RectangleComponent(
         size: Vector2(roadWidth, segmentHeight + 2),
-        position: Vector2(gameRef.size.x / 2 - roadWidth / 2, gameRef.size.y - (i * segmentHeight)),
-        paint: Paint()
-          ..color = Colors.grey[800]!,
+        position: Vector2(
+            gameRef.size.x / 2 - roadWidth / 2,
+            screenHeight - (i * segmentHeight)
+        ),
+        paint: Paint()..color = Colors.grey[800]!,
       );
       roadSegments.add(roadSegment);
       add(roadSegment);
 
-      // Lane divider line
+      // Lane divider line (white instead of yellow)
       final laneLine = RectangleComponent(
         size: Vector2(4, segmentHeight + 2),
-        position: Vector2(gameRef.size.x / 2, gameRef.size.y - (i * segmentHeight)),
-        paint: Paint()
-          ..color = Colors.yellow,
+        position: Vector2(
+            gameRef.size.x / 2 - 2,
+            screenHeight - (i * segmentHeight)
+        ),
+        paint: Paint()..color = Colors.white,
       );
       laneLines.add(laneLine);
       add(laneLine);
@@ -53,10 +59,9 @@ class Road extends Component with HasGameRef<ShootingGame> {
         size: Vector2(15, 15),
         position: Vector2(
           gameRef.size.x / 2 - roadWidth / 2 - 20, // Left side of road
-          gameRef.size.y - (i * segmentHeight),
+          screenHeight - (i * segmentHeight),
         ),
-        paint: Paint()
-          ..color = Colors.green,
+        paint: Paint()..color = Colors.green,
         children: [
           TextComponent(
             text: '$i',
