@@ -6,7 +6,9 @@ import 'dart:math';
 import 'components/player.dart';
 import 'components/road.dart';
 import 'components/virtual_joystick.dart';
-import 'components/soldier.dart';
+import 'components/enemies/base_enemy.dart';
+import 'components/enemies/basic_soldier.dart';
+import 'components/enemies/heavy_soldier.dart';
 import 'components/header.dart';
 import 'components/barrel.dart';
 import 'upgrade_config.dart';
@@ -35,11 +37,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   double _timeSinceLastSpawn = 0;
   final Random _random = Random();
-  final List<Soldier> _soldiers = [];
+  final List<BaseEnemy> _enemies = []; // Changed from _soldiers to _enemies
 
   // Game statistics
   int killCount = 0;
-  int escapedCount = 0;
+  int totalDamage = 0; // Changed from escapedCount
 
   // Weapon upgrades
   double bulletSizeMultiplier = 1.0;
@@ -91,16 +93,15 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Handle barrel spawning
     _handleBarrelSpawning(dt);
 
-    // Clean up dead soldiers from our tracking list and check for escaped
-    _soldiers.removeWhere((soldier) {
-      if (soldier.isRemoved) {
+    // Clean up dead enemies from our tracking list and check for escaped
+    _enemies.removeWhere((enemy) {
+      if (enemy.isRemoved) {
         return true; // Remove from tracking list
       }
 
-      // Check if soldier escaped (reached bottom without being killed)
-      if (soldier.position.y > size.y) {
-        escapedCount++;
-        _updateLabels();
+      // Check if enemy escaped (reached bottom without being killed)
+      if (enemy.position.y > size.y) {
+        enemy.onEscaped(); // Deal damage based on enemy type
         return true; // Remove from tracking list
       }
 
@@ -127,22 +128,31 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   }
 
   void _spawnSoldiers() {
-    // Don't spawn if we already have too many soldiers
-    if (_soldiers.length >= maxVisibleSoldiers) {
+    // Don't spawn if we already have too many enemies
+    if (_enemies.length >= maxVisibleSoldiers) {
       return;
     }
 
-    // Calculate how many soldiers we can spawn
-    final remainingSlots = maxVisibleSoldiers - _soldiers.length;
-    final soldiersToSpawn = min(soldiersPerSpawn, remainingSlots);
+    // Calculate how many enemies we can spawn
+    final remainingSlots = maxVisibleSoldiers - _enemies.length;
+    final enemiesToSpawn = min(soldiersPerSpawn, remainingSlots);
 
-    for (int i = 0; i < soldiersToSpawn; i++) {
-      final soldier = Soldier();
-      _soldiers.add(soldier);
-      add(soldier);
+    for (int i = 0; i < enemiesToSpawn; i++) {
+      BaseEnemy enemy;
+
+      // 20% chance for heavy soldier, 80% for basic soldier
+      if (_random.nextDouble() < 0.2) {
+        enemy = HeavySoldier();
+        print('Spawned Heavy Soldier (${enemy.maxHealth} HP)');
+      } else {
+        enemy = BasicSoldier();
+      }
+
+      _enemies.add(enemy);
+      add(enemy);
     }
 
-    print('Spawned $soldiersToSpawn soldiers. Total: ${_soldiers.length}');
+    print('Spawned $enemiesToSpawn enemies. Total: ${_enemies.length}');
   }
 
   void _spawnBarrel() {
@@ -161,9 +171,16 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     _updateLabels();
   }
 
+  // Called when player takes damage from escaped enemies
+  void takeDamage(int damage) {
+    totalDamage += damage;
+    _updateLabels();
+    print('Player took $damage damage! Total damage: $totalDamage');
+  }
+
   void _updateLabels() {
     header.updateKills(killCount);
-    header.updateEscaped(escapedCount);
+    header.updateDamage(totalDamage);
   }
 
   void _updateUpgradeLabels() {
@@ -182,15 +199,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     isPaused = false;
     resumeEngine(); // Resumes the game loop
     print('Game resumed');
-  }
-
-  // Manual pause/resume methods (for pause button if needed)
-  void togglePause() {
-    if (isPaused) {
-      resumeGame();
-    } else {
-      pauseGame();
-    }
   }
 
   // Weapon upgrade methods with max limits from config

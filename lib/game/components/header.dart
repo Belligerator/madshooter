@@ -7,7 +7,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
 
   late RectangleComponent background;
   late TextComponent killsLabel;
-  late TextComponent escapedLabel;
+  late TextComponent damageLabel;
   late TextComponent bulletSizeLabel;
   late TextComponent fireRateLabel;
 
@@ -40,9 +40,9 @@ class Header extends Component with HasGameRef<ShootingGame> {
     );
     add(killsLabel);
 
-    // Add escaped soldiers counter (in header, to the right of kills)
-    escapedLabel = TextComponent(
-      text: 'Escaped: 0',
+    // Add damage counter (in header, to the right of kills)
+    damageLabel = TextComponent(
+      text: 'Damage: 0',
       position: Vector2(150, 15),
       textRenderer: TextPaint(
         style: const TextStyle(
@@ -52,7 +52,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
         ),
       ),
     );
-    add(escapedLabel);
+    add(damageLabel);
 
     // Add bullet size multiplier label (below kills)
     bulletSizeLabel = TextComponent(
@@ -86,9 +86,9 @@ class Header extends Component with HasGameRef<ShootingGame> {
     killsLabel.text = 'Kills: $kills';
   }
 
-  // Update the escaped count display
-  void updateEscaped(int escaped) {
-    escapedLabel.text = 'Escaped: $escaped';
+  // Update the damage count display
+  void updateDamage(int damage) {
+    damageLabel.text = 'Damage: $damage';
   }
 
   // Update the bullet size multiplier display

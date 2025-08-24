@@ -2,7 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../shooting_game.dart';
-import 'soldier.dart';
+import 'enemies/base_enemy.dart';
 import 'barrel.dart';
 
 class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
@@ -47,14 +47,13 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
   bool onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
 
-    // Check if bullet collided with a soldier
-    if (other is Soldier) {
-      // Notify game about the kill
-      gameRef.onSoldierKilled();
+    // Check if bullet collided with any enemy
+    if (other is BaseEnemy) {
+      // Damage the enemy
+      other.takeDamage(1);
 
-      // Remove both bullet and soldier
+      // Remove bullet
       removeFromParent();
-      other.removeFromParent();
       return false; // Stop processing more collisions for this bullet
     }
 

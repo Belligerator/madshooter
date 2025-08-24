@@ -64,11 +64,11 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     );
     add(healthBarBackground);
 
-    // Create health bar foreground (red)
+    // Create health bar foreground (start with green)
     healthBarForeground = RectangleComponent(
       size: Vector2(size.x, 4),
       position: Vector2(0, -6),
-      paint: Paint()..color = Colors.red,
+      paint: Paint()..color = Colors.green,
     );
     add(healthBarForeground);
 
