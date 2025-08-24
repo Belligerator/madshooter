@@ -25,10 +25,51 @@ class GameApp extends StatelessWidget {
   }
 }
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget {
+  @override
+  _GameScreenState createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
+  late ShootingGame game;
+
+  @override
+  void initState() {
+    super.initState();
+    final topPadding = WidgetsBinding.instance.window.padding.top / WidgetsBinding.instance.window.devicePixelRatio;
+    game = ShootingGame(safeAreaTop: topPadding);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        game.pauseGame();
+        break;
+      case AppLifecycleState.resumed:
+        game.resumeGame();
+        break;
+      case AppLifecycleState.inactive:
+      // Don't pause for inactive (e.g., notification pull-down)
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    game.safeAreaTop = topPadding;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -41,7 +82,7 @@ class GameScreen extends StatelessWidget {
           statusBarIconBrightness: Brightness.light,
         ),
       ),
-      body: GameWidget(game: ShootingGame(safeAreaTop: topPadding)),
+      body: GameWidget(game: game),
     );
   }
 }

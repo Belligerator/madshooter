@@ -48,22 +48,26 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
   void update(double dt) {
     super.update(dt);
 
-    // Handle automatic shooting
+    // Handle automatic shooting with upgraded fire rate
     _timeSinceLastShot += dt;
 
-    if (_timeSinceLastShot >= fireRate) {
+    final currentFireRate = gameRef.getFireRate(); // Get upgraded fire rate
+
+    if (_timeSinceLastShot >= currentFireRate) {
       _shoot();
       _timeSinceLastShot = 0;
     }
   }
 
   void _shoot() {
-    // Create bullet at player's position
-    final bullet = Bullet();
-    bullet.position = Vector2(
-      position.x + size.x / 2 - bullet.size.x / 2, // Center bullet on player
-      position.y - bullet.size.y, // Spawn just above player
+    // Calculate the origin point (center of player at top)
+    final originPoint = Vector2(
+      position.x + size.x / 2, // Center X of player
+      position.y,              // Top Y of player
     );
+
+    // Create bullet with origin point - bullet will handle its own positioning
+    final bullet = Bullet(origin: originPoint);
 
     // Add bullet to the game
     gameRef.add(bullet);

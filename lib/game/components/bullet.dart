@@ -3,17 +3,28 @@ import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'soldier.dart';
+import 'barrel.dart';
 
 class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 300.0;
+  final Vector2 origin;
+
+  Bullet({required this.origin});
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Small yellow bullet
-    size = Vector2(3, 8);
+    // Get bullet size from game (with upgrades applied)
+    final bulletSize = gameRef.getBulletSize();
+    size = Vector2(bulletSize.x, bulletSize.y);
     paint = Paint()..color = Colors.yellow;
+
+    // Position bullet centered on the origin point
+    position = Vector2(
+      origin.x - size.x / 2, // Center horizontally on origin
+      origin.y - size.y,     // Position just above origin
+    );
 
     // Add collision detection
     add(RectangleHitbox());
@@ -44,6 +55,16 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
       // Remove both bullet and soldier
       removeFromParent();
       other.removeFromParent();
+      return false; // Stop processing more collisions for this bullet
+    }
+
+    // Check if bullet collided with a barrel
+    if (other is Barrel) {
+      // Damage the barrel
+      other.takeDamage(1);
+
+      // Remove the bullet
+      removeFromParent();
       return false; // Stop processing more collisions for this bullet
     }
 

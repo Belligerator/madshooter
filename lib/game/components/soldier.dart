@@ -27,9 +27,8 @@ class Soldier extends CircleComponent with HasGameRef<ShootingGame>, CollisionCa
     // Spawn at random position within road bounds at top of game area (below header)
     final roadWidth = 200.0;
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - roadWidth / 2 + radius; // Account for radius
-    final rightBound = centerX + roadWidth / 2 - radius; // Account for radius
-    final headerHeight = 80.0; // Header height from ShootingGame
+    final leftBound = centerX - roadWidth / 2 + radius * 2; // Account for radius
+    final rightBound = centerX + roadWidth / 2 - radius * 2; // Account for radius
 
     // Random X position within road
     final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);

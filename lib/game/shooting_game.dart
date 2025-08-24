@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -10,6 +8,8 @@ import 'components/road.dart';
 import 'components/virtual_joystick.dart';
 import 'components/soldier.dart';
 import 'components/header.dart';
+import 'components/barrel.dart';
+import 'upgrade_config.dart';
 
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
@@ -19,12 +19,19 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // UI Layout constants
   static const double headerHeight = 80.0;
-  final double safeAreaTop;
+  double safeAreaTop; // Changed to mutable for dynamic updates
+
+  // Game state
+  bool isPaused = false;
 
   // Enemy spawning variables
   static const double spawnInterval = 5.0; // Spawn every 5 seconds
   static const int maxVisibleSoldiers = 50;
   static const int soldiersPerSpawn = 5;
+
+  // Barrel spawning variables
+  static const double barrelSpawnInterval = 10.0; // Spawn barrel every 10 seconds
+  double _timeSinceLastBarrelSpawn = 0;
 
   double _timeSinceLastSpawn = 0;
   final Random _random = Random();
@@ -33,6 +40,10 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Game statistics
   int killCount = 0;
   int escapedCount = 0;
+
+  // Weapon upgrades
+  double bulletSizeMultiplier = 1.0;
+  double fireRateMultiplier = 1.0;
 
   // Constructor to accept safe area padding
   ShootingGame({this.safeAreaTop = 0.0});
@@ -64,6 +75,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   @override
   void update(double dt) {
+    // Don't update if game is paused
+    if (isPaused) return;
+
     super.update(dt);
 
     // Move player based on joystick input
@@ -73,6 +87,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     // Handle enemy spawning
     _handleEnemySpawning(dt);
+
+    // Handle barrel spawning
+    _handleBarrelSpawning(dt);
 
     // Clean up dead soldiers from our tracking list and check for escaped
     _soldiers.removeWhere((soldier) {
@@ -100,6 +117,15 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
   }
 
+  void _handleBarrelSpawning(double dt) {
+    _timeSinceLastBarrelSpawn += dt;
+
+    if (_timeSinceLastBarrelSpawn >= barrelSpawnInterval) {
+      _spawnBarrel();
+      _timeSinceLastBarrelSpawn = 0;
+    }
+  }
+
   void _spawnSoldiers() {
     // Don't spawn if we already have too many soldiers
     if (_soldiers.length >= maxVisibleSoldiers) {
@@ -108,7 +134,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     // Calculate how many soldiers we can spawn
     final remainingSlots = maxVisibleSoldiers - _soldiers.length;
-    final soldiersToSpawn = math.min(soldiersPerSpawn, remainingSlots);
+    final soldiersToSpawn = min(soldiersPerSpawn, remainingSlots);
 
     for (int i = 0; i < soldiersToSpawn; i++) {
       final soldier = Soldier();
@@ -116,7 +142,17 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       add(soldier);
     }
 
-    print('Spawned $soldiersToSpawn soldiers. Total: ${_soldiers.length}');
+    // print('Spawned $soldiersToSpawn soldiers. Total: ${_soldiers.length}');
+  }
+
+  void _spawnBarrel() {
+    // Randomly choose barrel type
+    final barrelType = _random.nextBool() ? BarrelType.bulletSize : BarrelType.fireRate;
+
+    final barrel = Barrel(type: barrelType);
+    add(barrel);
+
+    print('Spawned ${barrelType.name} barrel');
   }
 
   // Called when a soldier is killed by bullet collision
@@ -128,6 +164,65 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   void _updateLabels() {
     header.updateKills(killCount);
     header.updateEscaped(escapedCount);
+  }
+
+  void _updateUpgradeLabels() {
+    header.updateBulletSize(bulletSizeMultiplier);
+    header.updateFireRate(fireRateMultiplier);
+  }
+
+  // Pause/Resume methods (called from Flutter widget)
+  void pauseGame() {
+    isPaused = true;
+    pauseEngine(); // Stops the game loop
+    print('Game paused');
+  }
+
+  void resumeGame() {
+    isPaused = false;
+    resumeEngine(); // Resumes the game loop
+    print('Game resumed');
+  }
+
+  // Manual pause/resume methods (for pause button if needed)
+  void togglePause() {
+    if (isPaused) {
+      resumeGame();
+    } else {
+      pauseGame();
+    }
+  }
+
+  // Weapon upgrade methods with max limits from config
+  bool upgradeBulletSize(double multiplier) {
+    if (bulletSizeMultiplier >= UpgradeConfig.maxBulletSizeMultiplier) {
+      return false; // Already at max
+    }
+
+    bulletSizeMultiplier = (bulletSizeMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxBulletSizeMultiplier);
+    _updateUpgradeLabels(); // Update UI
+    return true; // Upgrade applied
+  }
+
+  bool upgradeFireRate(double multiplier) {
+    if (fireRateMultiplier >= UpgradeConfig.maxFireRateMultiplier) {
+      return false; // Already at max
+    }
+
+    fireRateMultiplier = (fireRateMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxFireRateMultiplier);
+    _updateUpgradeLabels(); // Update UI
+    return true; // Upgrade applied
+  }
+
+  // Get current bullet size with upgrades applied
+  Vector2 getBulletSize() {
+    final baseSize = Vector2(UpgradeConfig.baseBulletWidth, UpgradeConfig.baseBulletHeight);
+    return Vector2(baseSize.x * bulletSizeMultiplier, baseSize.y * bulletSizeMultiplier);
+  }
+
+  // Get current fire rate with upgrades applied
+  double getFireRate() {
+    return UpgradeConfig.baseFireRate / fireRateMultiplier; // Lower value = faster firing
   }
 
   // Helper method to get the game area height (excluding header and safe areas)
