@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 
 class Road extends Component with HasGameRef<ShootingGame> {
-  static const double roadWidth = 200.0;
-  static const double laneWidth = roadWidth / 2;
-  static const double scrollSpeed = 100.0;
+  static const double scrollSpeed = 50.0;
+
+  // Lane width calculated dynamically from game's road width
+  double get laneWidth => gameRef.roadWidth / 2;
 
   late List<RectangleComponent> roadSegments;
   late List<RectangleComponent> laneLines;
   late List<RectangleComponent> trees;
   late double segmentHeight;
-  final segmentCount = 4 + 1; // Extra segments for smooth scrolling
 
   @override
   Future<void> onLoad() async {
@@ -28,12 +28,16 @@ class Road extends Component with HasGameRef<ShootingGame> {
     final gameAreaHeight = screenHeight;
 
     segmentHeight = gameAreaHeight / 4;
+    final segmentCount = 4 + 1; // Extra segments for smooth scrolling
 
     for (int i = 0; i < segmentCount; i++) {
       // Road background
       final roadSegment = RectangleComponent(
-        size: Vector2(roadWidth, segmentHeight + 2),
-        position: Vector2(gameRef.size.x / 2 - roadWidth / 2, screenHeight - (i * segmentHeight)),
+        size: Vector2(gameRef.roadWidth, segmentHeight + 2),
+        position: Vector2(
+            gameRef.size.x / 2 - gameRef.roadWidth / 2,
+            screenHeight - (i * segmentHeight)
+        ),
         paint: Paint()..color = Colors.grey[800]!,
       );
       roadSegments.add(roadSegment);
@@ -42,7 +46,10 @@ class Road extends Component with HasGameRef<ShootingGame> {
       // Lane divider line (white instead of yellow)
       final laneLine = RectangleComponent(
         size: Vector2(4, segmentHeight + 2),
-        position: Vector2(gameRef.size.x / 2 - 2, screenHeight - (i * segmentHeight)),
+        position: Vector2(
+            gameRef.size.x / 2 - 2,
+            screenHeight - (i * segmentHeight)
+        ),
         paint: Paint()..color = Colors.white,
       );
       laneLines.add(laneLine);
@@ -51,14 +58,17 @@ class Road extends Component with HasGameRef<ShootingGame> {
       // DEBUG: Add tree marker at the beginning of each segment
       final tree = RectangleComponent(
         size: Vector2(15, 15),
-        position: Vector2(gameRef.size.x / 2 - roadWidth / 2 - 20, screenHeight - (i * segmentHeight)),
+        position: Vector2(
+          gameRef.size.x / 2 - gameRef.roadWidth / 2 - 20, // Left side of road
+          screenHeight - (i * segmentHeight),
+        ),
         paint: Paint()..color = Colors.green,
         children: [
-          // TextComponent(
-          //   text: '$i',
-          //   position: Vector2(0, 0),
-          //   textRenderer: TextPaint(style: const TextStyle(color: Colors.black, fontSize: 12)),
-          // ),
+          TextComponent(
+            text: '$i',
+            position: Vector2(0, 0),
+            textRenderer: TextPaint(style: const TextStyle(color: Colors.black, fontSize: 12)),
+          ),
         ],
       );
       trees.add(tree);
@@ -75,8 +85,8 @@ class Road extends Component with HasGameRef<ShootingGame> {
       segment.position.y += scrollSpeed * dt;
 
       // Reset position when segment goes off screen
-      if (segment.position.y >= gameRef.size.y) {
-        segment.position.y = (segment.position.y - segmentHeight * segmentCount).roundToDouble();
+      if (segment.position.y > gameRef.size.y) {
+        segment.position.y = -segmentHeight;
       }
     }
 
@@ -85,8 +95,8 @@ class Road extends Component with HasGameRef<ShootingGame> {
       line.position.y += scrollSpeed * dt;
 
       // Reset position when line goes off screen
-      if (line.position.y >= gameRef.size.y) {
-        line.position.y = (line.position.y - segmentHeight * segmentCount).roundToDouble();
+      if (line.position.y > gameRef.size.y) {
+        line.position.y = -segmentHeight;
       }
     }
 
@@ -94,8 +104,8 @@ class Road extends Component with HasGameRef<ShootingGame> {
       tree.position.y += scrollSpeed * dt;
 
       // Reset position when line goes off screen
-      if (tree.position.y >= gameRef.size.y) {
-        tree.position.y = (tree.position.y - segmentHeight * segmentCount).roundToDouble();
+      if (tree.position.y > gameRef.size.y) {
+        tree.position.y = -segmentHeight;
       }
     }
   }

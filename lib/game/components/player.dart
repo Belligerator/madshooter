@@ -25,10 +25,9 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
     priority = 100; // Higher value renders on top
 
     // Set boundaries for player movement (stay within road)
-    final roadWidth = 200.0;
     centerX = gameRef.size.x / 2;
-    leftBoundary = centerX - roadWidth / 2 + size.x / 2;
-    rightBoundary = centerX + roadWidth / 2 - size.x / 2;
+    leftBoundary = centerX - gameRef.roadWidth / 2 + size.x / 2; // Use gameRef.roadWidth
+    rightBoundary = centerX + gameRef.roadWidth / 2 - size.x / 2; // Use gameRef.roadWidth
 
     // Set initial position at bottom center
     position = Vector2(centerX - size.x / 2, gameRef.size.y - 80);

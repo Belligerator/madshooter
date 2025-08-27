@@ -21,21 +21,17 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // UI Layout constants
   static const double headerHeight = 80.0;
+  final double roadWidth = 200.0; // Instance variable instead of static
   double safeAreaTop; // Changed to mutable for dynamic updates
 
   // Game state
   bool isPaused = false;
 
-  // Enemy spawning variables
-  static const double spawnInterval = 5.0; // Spawn every 5 seconds
-  static const int maxVisibleSoldiers = 50;
-  static const int soldiersPerSpawn = 5;
-
-  // Barrel spawning variables
-  static const double barrelSpawnInterval = 15.0; // Spawn barrel every 15 seconds
+  // Spawning timers
   double _timeSinceLastBarrelSpawn = 0;
+  double _timeSinceLastBasicSpawn = 0;
+  double _timeSinceLastHeavySpawn = 0;
 
-  double _timeSinceLastSpawn = 0;
   final Random _random = Random();
   final List<BaseEnemy> _enemies = []; // Changed from _soldiers to _enemies
 
@@ -87,8 +83,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       player.move(joystick.delta.x);
     }
 
-    // Handle enemy spawning
-    _handleEnemySpawning(dt);
+    // Handle enemy spawning (separate for each type)
+    _handleBasicSoldierSpawning(dt);
+    _handleHeavySoldierSpawning(dt);
 
     // Handle barrel spawning
     _handleBarrelSpawning(dt);
@@ -109,60 +106,55 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     });
   }
 
-  void _handleEnemySpawning(double dt) {
-    _timeSinceLastSpawn += dt;
+  void _handleBasicSoldierSpawning(double dt) {
+    _timeSinceLastBasicSpawn += dt;
 
-    if (_timeSinceLastSpawn >= spawnInterval) {
-      _spawnSoldiers();
-      _timeSinceLastSpawn = 0;
+    if (_timeSinceLastBasicSpawn >= BasicSoldier.spawnInterval) {
+      _spawnBasicSoldiers();
+      _timeSinceLastBasicSpawn = 0;
+    }
+  }
+
+  void _handleHeavySoldierSpawning(double dt) {
+    _timeSinceLastHeavySpawn += dt;
+
+    if (_timeSinceLastHeavySpawn >= HeavySoldier.spawnInterval) {
+      _spawnHeavySoldiers();
+      _timeSinceLastHeavySpawn = 0;
     }
   }
 
   void _handleBarrelSpawning(double dt) {
     _timeSinceLastBarrelSpawn += dt;
 
-    if (_timeSinceLastBarrelSpawn >= barrelSpawnInterval) {
+    if (_timeSinceLastBarrelSpawn >= Barrel.spawnInterval) {
       _spawnBarrel();
       _timeSinceLastBarrelSpawn = 0;
     }
   }
 
-  void _spawnSoldiers() {
-    // Don't spawn if we already have too many enemies
-    if (_enemies.length >= maxVisibleSoldiers) {
-      return;
-    }
-
-    // Calculate how many enemies we can spawn
-    final remainingSlots = maxVisibleSoldiers - _enemies.length;
-    final enemiesToSpawn = min(soldiersPerSpawn, remainingSlots);
-
-    for (int i = 0; i < enemiesToSpawn; i++) {
-      BaseEnemy enemy;
-
-      // 20% chance for heavy soldier, 80% for basic soldier
-      if (_random.nextDouble() < 0.2) {
-        enemy = HeavySoldier();
-        print('Spawned Heavy Soldier (${enemy.maxHealth} HP)');
-      } else {
-        enemy = BasicSoldier();
-      }
-
+  void _spawnBasicSoldiers() {
+    for (int i = 0; i < BasicSoldier.soldiersPerSpawn; i++) {
+      final enemy = BasicSoldier();
       _enemies.add(enemy);
       add(enemy);
     }
+  }
 
-    print('Spawned $enemiesToSpawn enemies. Total: ${_enemies.length}');
+  void _spawnHeavySoldiers() {
+    for (int i = 0; i < HeavySoldier.soldiersPerSpawn; i++) {
+      final enemy = HeavySoldier();
+      _enemies.add(enemy);
+      add(enemy);
+    }
   }
 
   void _spawnBarrel() {
-    // Randomly choose barrel type
-    final barrelType = _random.nextBool() ? BarrelType.bulletSize : BarrelType.fireRate;
+    // Use probability-based barrel type selection
+    final barrelType = BarrelType.getRandomBarrelType(_random);
 
     final barrel = Barrel(type: barrelType);
     add(barrel);
-
-    print('Spawned ${barrelType.name} barrel');
   }
 
   // Called when a soldier is killed by bullet collision
@@ -175,7 +167,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   void takeDamage(int damage) {
     totalDamage += damage;
     _updateLabels();
-    print('Player took $damage damage! Total damage: $totalDamage');
   }
 
   void _updateLabels() {

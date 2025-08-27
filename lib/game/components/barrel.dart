@@ -8,14 +8,15 @@ import '../shooting_game.dart';
 import '../upgrade_config.dart';
 
 enum BarrelType {
-  bulletSize(Colors.brown, 0.1, 'Bullet Size'),
-  fireRate(Colors.orange, 0.1, 'Fire Rate');
+  bulletSize(Colors.brown, 0.1, 'Bullet Size', 0.7),    // 70% spawn chance - common
+  fireRate(Colors.orange, 0.1, 'Fire Rate', 0.3);       // 30% spawn chance - rare
 
-  const BarrelType(this.color, this.upgradeValue, this.displayName);
+  const BarrelType(this.color, this.upgradeValue, this.displayName, this.spawnProbability);
 
   final Color color;
   final double upgradeValue;
   final String displayName;
+  final double spawnProbability; // 0.0 to 1.0 chance of spawning this type
 
   // Get max multiplier from config
   double get maxMultiplier {
@@ -26,11 +27,30 @@ enum BarrelType {
         return UpgradeConfig.maxFireRateMultiplier;
     }
   }
+
+  // Static method to select barrel type based on probability
+  static BarrelType getRandomBarrelType(Random random) {
+    final randomValue = random.nextDouble();
+
+    // Create weighted selection based on probabilities
+    double cumulativeProbability = 0.0;
+
+    for (final barrelType in BarrelType.values) {
+      cumulativeProbability += barrelType.spawnProbability;
+      if (randomValue <= cumulativeProbability) {
+        return barrelType;
+      }
+    }
+
+    // Fallback to first barrel type if something goes wrong
+    return BarrelType.bulletSize;
+  }
 }
 
 class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 100.0; // Same as road scroll speed
   static const int maxHealth = 10;
+  static const double spawnInterval = 5.0; // Spawn barrel every 5 seconds
   static final Random _random = Random();
 
   final BarrelType type;
@@ -72,14 +92,13 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     );
     add(healthBarForeground);
 
-    // Spawn at random position within road bounds at top of game area
-    final roadWidth = 200.0;
+    // Spawn at random position within RIGHT HALF of road bounds
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - roadWidth / 2;
-    final rightBound = centerX + roadWidth / 2 - size.x;
+    final leftBound = centerX; // Start from center of road
+    final rightBound = centerX + gameRef.roadWidth / 2 - size.x; // Use gameRef.roadWidth
     final headerHeight = 80.0;
 
-    // Random X position within road
+    // Random X position within RIGHT half of road
     final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
     position = Vector2(randomX, headerHeight - size.y);
   }
@@ -125,20 +144,10 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Apply upgrade using enum data with max limits from config
     switch (type) {
       case BarrelType.bulletSize:
-        final applied = gameRef.upgradeBulletSize(type.upgradeValue);
-        if (applied) {
-          print('${type.displayName} upgrade! Bullets are now ${(type.upgradeValue * 100).toInt()}% bigger.');
-        } else {
-          print('${type.displayName} already at maximum level!');
-        }
+        gameRef.upgradeBulletSize(type.upgradeValue);
         break;
       case BarrelType.fireRate:
-        final applied = gameRef.upgradeFireRate(type.upgradeValue);
-        if (applied) {
-          print('${type.displayName} upgrade! Shooting ${(type.upgradeValue * 100).toInt()}% faster.');
-        } else {
-          print('${type.displayName} already at maximum level!');
-        }
+        gameRef.upgradeFireRate(type.upgradeValue);
         break;
     }
   }

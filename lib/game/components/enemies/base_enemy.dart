@@ -1,11 +1,13 @@
 import 'dart:math';
+
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+
 import '../../shooting_game.dart';
 
 abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
-  static const double baseSpeed = 120.0;
+  static const double baseSpeed = 100.0;
   static final Random _random = Random();
 
   int maxHealth;
@@ -16,11 +18,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   RectangleComponent? healthBarBackground;
   RectangleComponent? healthBarForeground;
 
-  BaseEnemy({
-    required this.maxHealth,
-    required this.enemyColor,
-    required this.enemyRadius,
-  }) : currentHealth = maxHealth;
+  BaseEnemy({required this.maxHealth, required this.enemyColor, required this.enemyRadius}) : currentHealth = maxHealth;
 
   @override
   Future<void> onLoad() async {
@@ -41,11 +39,10 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
       _createHealthBar();
     }
 
-    // Spawn at random position within road bounds
-    final roadWidth = 200.0;
+    // Spawn at random position within LEFT HALF of road bounds
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - roadWidth / 2 + radius * 2;
-    final rightBound = centerX + roadWidth / 2 - radius * 2;
+    final leftBound = centerX - gameRef.roadWidth / 2 + radius * 2; // Use gameRef.roadWidth
+    final rightBound = centerX - radius * 2; // Center of road (minus radius for safety)
     final headerHeight = 80.0;
 
     final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
