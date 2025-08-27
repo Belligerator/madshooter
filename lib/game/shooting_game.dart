@@ -219,9 +219,14 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     return Vector2(baseSize.x * bulletSizeMultiplier, baseSize.y * bulletSizeMultiplier);
   }
 
-  // Get current fire rate with upgrades applied
+  // Get current fire rate with upgrades applied (shots per second)
   double getFireRate() {
-    return UpgradeConfig.baseFireRate / fireRateMultiplier; // Lower value = faster firing
+    return UpgradeConfig.baseFireRate * fireRateMultiplier;
+  }
+
+  // Get current fire interval (seconds between shots) - for internal use
+  double getFireInterval() {
+    return 1.0 / getFireRate(); // Convert shots per second to seconds between shots
   }
 
   // Helper method to get the game area height (excluding header and safe areas)

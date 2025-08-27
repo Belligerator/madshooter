@@ -1,11 +1,11 @@
 import 'package:flame/components.dart';
+import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'bullet.dart';
 
-class Player extends RectangleComponent with HasGameRef<ShootingGame> {
+class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
-  static const double fireRate = 0.3; // Seconds between shots
 
   late double leftBoundary;
   late double rightBoundary;
@@ -17,30 +17,32 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Create simple player rectangle (we'll replace with sprites later)
-    size = Vector2(30, 40);
+    // Create circular player (same pattern as soldiers)
+    radius = 12.0;
     paint = Paint()..color = Colors.blue;
 
-    // Set higher priority/z-index to render on top
-    priority = 100; // Higher value renders on top
+    // Set priority to render above enemies but below header
+    priority = 100;
 
-    // Set boundaries for player movement (stay within road)
-    centerX = gameRef.size.x / 2;
-    leftBoundary = centerX - gameRef.roadWidth / 2 + size.x / 2; // Use gameRef.roadWidth
-    rightBoundary = centerX + gameRef.roadWidth / 2 - size.x / 2; // Use gameRef.roadWidth
+    // Add collision detection
+    add(CircleHitbox());
 
-    // Set initial position at bottom center
-    position = Vector2(centerX - size.x / 2, gameRef.size.y - 80);
+    // Set boundaries and position
+    centerX = gameRef.size.x / 2 - radius;
+    leftBoundary = centerX - gameRef.roadWidth / 2 - radius * 2;
+    rightBoundary = centerX + gameRef.roadWidth / 2 + radius * 2;
+
+    // Position at bottom center of road
+    position = Vector2(centerX, gameRef.size.y - 50);
   }
 
   void move(double joystickX) {
     // Direct proportional movement based on joystick input
-    // joystickX ranges from -1.0 to 1.0
-    final targetX = centerX + (joystickX * 2); // Modified value from user
+    final targetX = centerX + (joystickX * 2);
 
     // Clamp to road boundaries
     final clampedX = targetX.clamp(leftBoundary, rightBoundary);
-    position.x = clampedX - size.x / 2;
+    position.x = clampedX;
   }
 
   @override
@@ -50,9 +52,9 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
     // Handle automatic shooting with upgraded fire rate
     _timeSinceLastShot += dt;
 
-    final currentFireRate = gameRef.getFireRate(); // Get upgraded fire rate
+    final currentFireInterval = gameRef.getFireInterval(); // Get seconds between shots
 
-    if (_timeSinceLastShot >= currentFireRate) {
+    if (_timeSinceLastShot >= currentFireInterval) {
       _shoot();
       _timeSinceLastShot = 0;
     }
@@ -61,11 +63,11 @@ class Player extends RectangleComponent with HasGameRef<ShootingGame> {
   void _shoot() {
     // Calculate the origin point (center of player at top)
     final originPoint = Vector2(
-      position.x + size.x / 2, // Center X of player
-      position.y,              // Top Y of player
+      position.x + radius, // Center X of player (CircleComponent position is center)
+      position.y - radius, // Top of player circle
     );
 
-    // Create bullet with origin point - bullet will handle its own positioning
+    // Create bullet with origin point
     final bullet = Bullet(origin: originPoint);
 
     // Add bullet to the game
