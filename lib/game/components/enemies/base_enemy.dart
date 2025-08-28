@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../../shooting_game.dart';
 
 abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
-  static const double baseSpeed = 100.0;
+  static const double baseSpeed = 80.0;
   static final Random _random = Random();
 
   int maxHealth;

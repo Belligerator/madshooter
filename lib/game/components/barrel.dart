@@ -8,8 +8,9 @@ import '../shooting_game.dart';
 import '../upgrade_config.dart';
 
 enum BarrelType {
-  bulletSize(Colors.brown, 0.1, 'Bullet Size', 0.7),    // 70% spawn chance - common
-  fireRate(Colors.orange, 0.1, 'Fire Rate', 0.3);       // 30% spawn chance - rare
+  bulletSize(Colors.brown, 0.1, 'Bullet Size', 0.5),        // 50% spawn chance - common
+  fireRate(Colors.orange, 0.1, 'Fire Rate', 0.3),           // 30% spawn chance - uncommon
+  ally(Colors.green, 1.0, 'Ally', 0.2);                     // 20% spawn chance - rare
 
   const BarrelType(this.color, this.upgradeValue, this.displayName, this.spawnProbability);
 
@@ -25,6 +26,8 @@ enum BarrelType {
         return UpgradeConfig.maxBulletSizeMultiplier;
       case BarrelType.fireRate:
         return UpgradeConfig.maxFireRateMultiplier;
+      case BarrelType.ally:
+        return UpgradeConfig.maxAllyCount; // Max number of allies
     }
   }
 
@@ -48,7 +51,7 @@ enum BarrelType {
 }
 
 class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
-  static const double speed = 100.0; // Same as road scroll speed
+  static const double speed = 50.0; // Same as road scroll speed
   static const int maxHealth = 10;
   static const double spawnInterval = 5.0; // Spawn barrel every 5 seconds
   static final Random _random = Random();
@@ -144,10 +147,13 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Apply upgrade using enum data with max limits from config
     switch (type) {
       case BarrelType.bulletSize:
-        gameRef.upgradeBulletSize(type.upgradeValue);
+        final applied = gameRef.upgradeBulletSize(type.upgradeValue);
         break;
       case BarrelType.fireRate:
-        gameRef.upgradeFireRate(type.upgradeValue);
+        final applied = gameRef.upgradeFireRate(type.upgradeValue);
+        break;
+      case BarrelType.ally:
+        final applied = gameRef.addAlly();
         break;
     }
   }

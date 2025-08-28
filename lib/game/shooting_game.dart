@@ -4,6 +4,7 @@ import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'components/player.dart';
+import 'components/ally.dart';
 import 'components/road.dart';
 import 'components/virtual_joystick.dart';
 import 'components/enemies/base_enemy.dart';
@@ -33,7 +34,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   double _timeSinceLastHeavySpawn = 0;
 
   final Random _random = Random();
-  final List<BaseEnemy> _enemies = []; // Changed from _soldiers to _enemies
+  final List<BaseEnemy> _enemies = [];
+  final List<Ally> allies = []; // Added the missing allies list // Changed from _soldiers to _enemies
+  int allyCount = 0; // Track current number of allies
 
   // Game statistics
   int killCount = 0;
@@ -78,9 +81,14 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     super.update(dt);
 
-    // Move player based on joystick input
+    // Move player based on joystick input and update ally positions
     if (!joystick.delta.isZero()) {
       player.move(joystick.delta.x);
+    }
+
+    // Update ally positions to follow main player
+    for (final ally in allies) {
+      ally.updatePosition(player.position);
     }
 
     // Handle enemy spawning (separate for each type)
@@ -209,6 +217,30 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
 
     fireRateMultiplier = (fireRateMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxFireRateMultiplier);
+    _updateUpgradeLabels(); // Update UI
+    return true; // Upgrade applied
+  }
+
+  bool addAlly() {
+    if (allyCount >= UpgradeConfig.maxAllyCount) {
+      return false; // Already at max allies
+    }
+
+    allyCount++;
+
+    // Create ally with random offset position around player (closer and behind)
+    const double maxOffset = 10.0; // Max pixels from player
+    const double behindOffset = 15.0; // How far behind player
+
+    Vector2 allyOffset = Vector2(
+      (_random.nextDouble() - 0.5) * 2 * maxOffset, // Random X: -10 to +10
+      behindOffset + (_random.nextDouble() * maxOffset), // Random Y: 15 to 25 (behind player)
+    );
+
+    final ally = Ally(offsetFromPlayer: allyOffset);
+    allies.add(ally);
+    add(ally);
+
     _updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied
   }
