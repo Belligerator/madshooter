@@ -1,12 +1,10 @@
 import 'package:flame/game.dart';
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
-import 'package:flutter/material.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
 import 'components/road.dart';
-import 'components/virtual_joystick.dart';
+import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
 import 'components/enemies/basic_soldier.dart';
 import 'components/enemies/heavy_soldier.dart';
@@ -17,7 +15,7 @@ import 'upgrade_config.dart';
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
   late Road road;
-  late VirtualJoystick joystick;
+  late PlayerSlider playerSlider;
   late Header header;
 
   // UI Layout constants
@@ -61,13 +59,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     player = Player();
     add(player);
 
-    // Add virtual joystick (moved to right side)
-    joystick = VirtualJoystick(
-      knob: CircleComponent(radius: 15, paint: Paint()..color = Colors.blue),
-      background: CircleComponent(radius: 50, paint: Paint()..color = Colors.grey.withOpacity(0.5)),
-      margin: const EdgeInsets.only(right: 40, bottom: 40),
-    );
-    add(joystick);
+    // Add player slider for movement control
+    playerSlider = PlayerSlider();
+    add(playerSlider);
 
     // Add header component (will render on top due to high priority)
     header = Header();
@@ -80,11 +74,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     if (isPaused) return;
 
     super.update(dt);
-
-    // Move player based on joystick input and update ally positions
-    if (!joystick.delta.isZero()) {
-      player.move(joystick.delta.x);
-    }
 
     // Update ally positions to follow main player
     for (final ally in allies) {

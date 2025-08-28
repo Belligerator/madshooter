@@ -6,6 +6,7 @@ import 'bullet.dart';
 
 class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
+  static const double playerRadius = 12.0;
 
   late double leftBoundary;
   late double rightBoundary;
@@ -18,7 +19,7 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     super.onLoad();
 
     // Create circular player (same pattern as soldiers)
-    radius = 12.0;
+    radius = playerRadius;
     paint = Paint()..color = Colors.blue;
 
     // Set priority to render above enemies but below header
@@ -29,8 +30,8 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
 
     // Set boundaries and position
     centerX = gameRef.size.x / 2 - radius;
-    leftBoundary = centerX - gameRef.roadWidth / 2 - radius * 2;
-    rightBoundary = centerX + gameRef.roadWidth / 2 + radius * 2;
+    leftBoundary = centerX - gameRef.roadWidth / 2;
+    rightBoundary = centerX + gameRef.roadWidth / 2;
 
     // Position at bottom center of road
     position = Vector2(centerX, gameRef.size.y - 50);
@@ -43,6 +44,13 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Clamp to road boundaries
     final clampedX = targetX.clamp(leftBoundary, rightBoundary);
     position.x = clampedX;
+  }
+
+  void moveToSliderPosition(double sliderValue) {
+    // Convert slider value (0.0 to 1.0) to player position
+    // 0.0 = left boundary, 1.0 = right boundary
+    final targetX = leftBoundary + (rightBoundary - leftBoundary) * sliderValue;
+    position.x = targetX;
   }
 
   @override

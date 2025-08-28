@@ -59,7 +59,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _pauseGame();
         break;
       case AppLifecycleState.resumed:
-        _resumeGame();
+        // _resumeGame();
         break;
       case AppLifecycleState.inactive:
       // Don't pause for inactive (e.g., notification pull-down)
