@@ -67,9 +67,10 @@ class Header extends Component with HasGameRef<ShootingGame> {
     );
     add(bulletSizeLabel);
 
+    final actualFireRate = gameRef.getFireRate(); // Get actual shots per second
     // Add fire rate multiplier label (below escaped)
     fireRateLabel = TextComponent(
-      text: 'Rate: 1.0x',
+      text: 'Rate: ${actualFireRate.toStringAsFixed(1)}/s',
       position: Vector2(150, 40),
       textRenderer: TextPaint(
         style: const TextStyle(
@@ -98,6 +99,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
 
   // Update the fire rate multiplier display
   void updateFireRate(double multiplier) {
-    fireRateLabel.text = 'Rate: ${multiplier.toStringAsFixed(1)}x';
+    final actualFireRate = gameRef.getFireRate(); // Get actual shots per second
+    fireRateLabel.text = 'Rate: ${actualFireRate.toStringAsFixed(1)}/s';
   }
 }
