@@ -1,0 +1,84 @@
+{
+  "levelId": 1,
+  "name": "First Contact",
+  "duration": 45,
+  "description": "Learn the basics of combat. Survive for 45 seconds while enemies attack.",
+  "starting_conditions": {
+    "bullet_size_multiplier": 1.0,
+    "additional_fire_rate": 0.0,
+    "ally_count": 0
+  },
+  "events": [
+    {
+      "timestamp": 2.0,
+      "type": "message",
+      "message": "Enemies approaching! Stay alert!"
+    },
+    {
+      "timestamp": 3.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_pattern": "single"
+    },
+    {
+      "timestamp": 8.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 2,
+      "spawn_pattern": "spread"
+    },
+    {
+      "timestamp": 15.0,
+      "type": "spawn_barrel",
+      "barrel_type": "bullet_size"
+    },
+    {
+      "timestamp": 18.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 3,
+      "spawn_pattern": "spread"
+    },
+    {
+      "timestamp": 25.0,
+      "type": "message",
+      "message": "Heavy soldier incoming!"
+    },
+    {
+      "timestamp": 26.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "spawn_pattern": "single"
+    },
+    {
+      "timestamp": 30.0,
+      "type": "spawn_barrel",
+      "barrel_type": "fire_rate"
+    },
+    {
+      "timestamp": 35.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 2,
+      "spawn_pattern": "spread"
+    },
+    {
+      "timestamp": 35.5,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "spawn_pattern": "single"
+    },
+    {
+      "timestamp": 40.0,
+      "type": "spawn_barrel",
+      "barrel_type": "ally"
+    }
+  ],
+  "victory_conditions": {
+    "survive_duration": 45,
+    "max_damage_taken": 30
+  }
+}

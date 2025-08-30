@@ -11,12 +11,15 @@ import 'components/enemies/heavy_soldier.dart';
 import 'components/header.dart';
 import 'components/barrel.dart';
 import 'upgrade_config.dart';
+import 'levels/level_manager.dart';
+import 'levels/level_state.dart';
 
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
   late Road road;
   late PlayerSlider playerSlider;
   late Header header;
+  late LevelManager levelManager;
 
   // UI Layout constants
   static const double headerHeight = 80.0;
@@ -25,15 +28,16 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Game state
   bool isPaused = false;
+  bool isLevelMode = false;
 
-  // Spawning timers
+  // Spawning timers (for free play mode)
   double _timeSinceLastBarrelSpawn = 0;
   double _timeSinceLastBasicSpawn = 0;
   double _timeSinceLastHeavySpawn = 0;
 
   final Random _random = Random();
   final List<BaseEnemy> _enemies = [];
-  final List<Ally> allies = []; // Added the missing allies list // Changed from _soldiers to _enemies
+  final List<Ally> allies = []; // Added the missing allies list
   int allyCount = 0; // Track current number of allies
 
   // Game statistics
@@ -42,7 +46,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Weapon upgrades
   double bulletSizeMultiplier = 1.0;
-  double fireRateMultiplier = 1.0;
+  double additionalFireRate = 0.0; // Additional shots per second
 
   // Constructor to accept safe area padding
   ShootingGame({this.safeAreaTop = 0.0});
@@ -66,6 +70,12 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Add header component (will render on top due to high priority)
     header = Header();
     add(header);
+
+    // Initialize level manager
+    levelManager = LevelManager(this);
+
+    // Load and start first level for testing
+    await loadAndStartLevel(2);
   }
 
   @override
@@ -80,12 +90,15 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       ally.updatePosition(player.position);
     }
 
-    // Handle enemy spawning (separate for each type)
-    _handleBasicSoldierSpawning(dt);
-    _handleHeavySoldierSpawning(dt);
-
-    // Handle barrel spawning
-    _handleBarrelSpawning(dt);
+    // Update level manager if in level mode
+    if (isLevelMode) {
+      levelManager.update(dt);
+    } else {
+      // Handle enemy spawning in free play mode only
+      _handleBasicSoldierSpawning(dt);
+      _handleHeavySoldierSpawning(dt);
+      _handleBarrelSpawning(dt);
+    }
 
     // Clean up dead enemies from our tracking list and check for escaped
     _enemies.removeWhere((enemy) {
@@ -157,12 +170,24 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Called when a soldier is killed by bullet collision
   void onSoldierKilled() {
     killCount++;
+
+    // Notify level manager if in level mode
+    if (isLevelMode) {
+      levelManager.onEnemyKilled();
+    }
+
     _updateLabels();
   }
 
   // Called when player takes damage from escaped enemies
   void takeDamage(int damage) {
     totalDamage += damage;
+
+    // Notify level manager if in level mode
+    if (isLevelMode) {
+      levelManager.onDamageTaken(damage);
+    }
+
     _updateLabels();
   }
 
@@ -171,9 +196,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     header.updateDamage(totalDamage);
   }
 
-  void _updateUpgradeLabels() {
+  void updateUpgradeLabels() {
     header.updateBulletSize(bulletSizeMultiplier);
-    header.updateFireRate(fireRateMultiplier);
+    header.updateFireRate(getFireRate()); // Pass actual fire rate instead of multiplier
   }
 
   // Pause/Resume methods (called from Flutter widget)
@@ -189,6 +214,54 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     print('Game resumed');
   }
 
+  // Level management methods
+  void setLevelMode(bool enabled) {
+    isLevelMode = enabled;
+    if (!enabled) {
+      // Reset to free play mode
+      levelManager.levelState = LevelState.notStarted;
+    }
+  }
+
+  Future<void> loadAndStartLevel(int levelId) async {
+    await levelManager.loadLevel(levelId);
+    levelManager.startLevel();
+    isLevelMode = true;
+  }
+
+  // Reset game state for new level or restart
+  void resetGameState() {
+    // Clear all enemies
+    for (final enemy in _enemies) {
+      enemy.removeFromParent();
+    }
+    _enemies.clear();
+
+    // Clear all allies
+    for (final ally in allies) {
+      ally.removeFromParent();
+    }
+    allies.clear();
+    allyCount = 0;
+
+    // Reset stats
+    killCount = 0;
+    totalDamage = 0;
+
+    // Reset upgrades
+    bulletSizeMultiplier = 1.0;
+    additionalFireRate = 0.0;
+
+    // Reset spawning timers
+    _timeSinceLastBarrelSpawn = 0;
+    _timeSinceLastBasicSpawn = 0;
+    _timeSinceLastHeavySpawn = 0;
+
+    // Update UI
+    _updateLabels();
+    updateUpgradeLabels();
+  }
+
   // Weapon upgrade methods with max limits from config
   bool upgradeBulletSize(double multiplier) {
     if (bulletSizeMultiplier >= UpgradeConfig.maxBulletSizeMultiplier) {
@@ -196,17 +269,19 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
 
     bulletSizeMultiplier = (bulletSizeMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxBulletSizeMultiplier);
-    _updateUpgradeLabels(); // Update UI
+    updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied
   }
 
-  bool upgradeFireRate(double multiplier) {
-    if (fireRateMultiplier >= UpgradeConfig.maxFireRateMultiplier) {
+  bool upgradeFireRate(double additionalRate) {
+    // Max additional fire rate would be 10.0 shots/sec (15 total - 5 base = 10 additional)
+    const double maxAdditionalRate = 10.0;
+    if (additionalFireRate >= maxAdditionalRate) {
       return false; // Already at max
     }
 
-    fireRateMultiplier = (fireRateMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxFireRateMultiplier);
-    _updateUpgradeLabels(); // Update UI
+    additionalFireRate = (additionalFireRate + additionalRate).clamp(0.0, maxAdditionalRate);
+    updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied
   }
 
@@ -230,7 +305,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     allies.add(ally);
     add(ally);
 
-    _updateUpgradeLabels(); // Update UI
+    updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied
   }
 
@@ -242,7 +317,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Get current fire rate with upgrades applied (shots per second)
   double getFireRate() {
-    return UpgradeConfig.baseFireRate * fireRateMultiplier;
+    return UpgradeConfig.baseFireRate + additionalFireRate;
   }
 
   // Get current fire interval (seconds between shots) - for internal use
@@ -255,4 +330,13 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Helper method to get the game area start position (including safe area)
   double get gameAreaTop => headerHeight + safeAreaTop;
+
+  // Level status getters for UI
+  bool get isLevelActive => isLevelMode && levelManager.levelState == LevelState.running;
+  bool get isLevelCompleted => isLevelMode && levelManager.levelState == LevelState.completed;
+  bool get isLevelFailed => isLevelMode && levelManager.levelState == LevelState.failed;
+
+  String get currentLevelName => levelManager.currentLevel?.name ?? 'Free Play';
+  double get levelProgress => levelManager.progress;
+  String get levelTimeRemaining => levelManager.timeRemaining;
 }

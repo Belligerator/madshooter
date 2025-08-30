@@ -9,7 +9,7 @@ import '../upgrade_config.dart';
 
 enum BarrelType {
   bulletSize(Colors.brown, 0.1, 'Bullet Size', 0.5),        // 50% spawn chance - common
-  fireRate(Colors.orange, 0.1, 'Fire Rate', 0.3),           // 30% spawn chance - uncommon
+  fireRate(Colors.orange, 1.0, 'Fire Rate', 0.3),           // 30% spawn chance - uncommon
   ally(Colors.green, 1.0, 'Ally', 0.2);                     // 20% spawn chance - rare
 
   const BarrelType(this.color, this.upgradeValue, this.displayName, this.spawnProbability);
