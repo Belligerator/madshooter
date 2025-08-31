@@ -2,6 +2,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:madshooter/game/components/player.dart';
+
 import '../shooting_game.dart';
 
 class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, TapCallbacks, DragCallbacks {
@@ -11,9 +12,9 @@ class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, TapC
   double sliderValue = 0.5; // 0.0 = left, 0.5 = center, 1.0 = right
   bool isDragging = false;
 
-  static const double sliderHeight = 40.0;
+  static const double sliderHeight = 100.0;
   static const double thumbWidth = 100.0;
-  static const double thumbHeight = 100.0;
+  static const double thumbHeight = 200.0;
 
   @override
   Future<void> onLoad() async {
@@ -21,20 +22,18 @@ class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, TapC
 
     // Calculate slider dimensions and position
     final sliderWidth = gameRef.roadWidth + thumbWidth; // Same width as road
-    final sliderY = gameRef.size.y - sliderHeight - 20; // 20px from bottom
+    // thumbWidth - for top padding, same as width. Bottom padding will be to the bottom of the screen
+    final sliderY = gameRef.size.y - Player.playerBottomPositionY - thumbWidth / 2;
     final sliderX = gameRef.size.x / 2 - sliderWidth / 2; // Centered
 
     // Set component position and size
     position = Vector2(sliderX, sliderY);
-    size = Vector2(sliderWidth, sliderHeight);
+    size = Vector2(sliderWidth, thumbHeight);
 
     // Create slider thumb (draggable part)
     sliderThumb = RectangleComponent(
       size: Vector2(thumbWidth, thumbHeight),
-      position: Vector2(
-        (sliderWidth - thumbWidth) * sliderValue, // Start at center
-        (sliderHeight - thumbHeight) / 2,
-      ),
+      position: Vector2((sliderWidth - thumbWidth) * sliderValue, 0),
       paint: Paint()..color = Colors.transparent,
     );
     add(sliderThumb);
@@ -54,12 +53,7 @@ class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, TapC
     final localPoint = event.localPosition;
 
     // Check if drag starts specifically on the thumb
-    final thumbRect = Rect.fromLTWH(
-        sliderThumb.position.x,
-        sliderThumb.position.y,
-        thumbWidth,
-        thumbHeight
-    );
+    final thumbRect = Rect.fromLTWH(sliderThumb.position.x, sliderThumb.position.y, thumbWidth, thumbHeight);
 
     if (thumbRect.contains(Offset(localPoint.x, localPoint.y))) {
       isDragging = true;

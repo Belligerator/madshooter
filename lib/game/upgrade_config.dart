@@ -7,7 +7,7 @@ class UpgradeConfig {
   // Base values
   static const double baseBulletWidth = 3.0;
   static const double baseBulletHeight = 8.0;
-  static const double baseFireRate = 5.0;              // Shots per second (instead of seconds between shots)
+  static const double baseFireRate = 1.0;              // Shots per second (instead of seconds between shots)
 
 // Future upgrade types can be added here
 // static const double maxBulletSpeedMultiplier = 2.0;

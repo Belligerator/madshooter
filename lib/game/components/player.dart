@@ -7,6 +7,7 @@ import 'bullet.dart';
 class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
   static const double playerRadius = 12.0;
+  static const double playerBottomPositionY = 100.0;
 
   late double leftBoundary;
   late double rightBoundary;
@@ -34,7 +35,7 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     rightBoundary = centerX + gameRef.roadWidth / 2;
 
     // Position at bottom center of road
-    position = Vector2(centerX, gameRef.size.y - 50);
+    position = Vector2(centerX, gameRef.size.y - playerBottomPositionY - radius);
   }
 
   void move(double joystickX) {

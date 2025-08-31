@@ -7,11 +7,11 @@ class HeavySoldier extends BaseEnemy {
   static const int soldiersPerSpawn = 1;   // Spawn 1 at a time
 
   HeavySoldier() : super(
-    maxHealth: 15,
+    maxHealth: 10,
     enemyColor: Colors.purple,
     enemyRadius: 16.0, // Bigger than basic soldier (12.0)
   );
 
   @override
-  double getSpeed() => super.getSpeed() * 0.6; // 20% slower than basic soldiers
+  double getSpeed() => super.getSpeed() * 0.5;
 }

@@ -74,8 +74,8 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Initialize level manager
     levelManager = LevelManager(this);
 
-    // Load and start first level for testing
-    await loadAndStartLevel(2);
+    // Don't automatically load level here - let the GameScreen handle it
+    // The level will be loaded via loadAndStartLevel() called from GameScreen
   }
 
   @override

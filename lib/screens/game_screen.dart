@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/game.dart';
+import 'dart:async';
 import '../game/shooting_game.dart';
 import 'level_selection_screen.dart';
 
@@ -23,12 +24,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late ShootingGame game;
   bool isPaused = false;
   Key gameKey = UniqueKey();
+  Timer? _uiUpdateTimer;
+  bool _gameInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _initializeGame();
     WidgetsBinding.instance.addObserver(this);
+
+    // Start UI update timer for level progress
+    _startUIUpdateTimer();
   }
 
   void _initializeGame() {
@@ -37,8 +43,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     game = ShootingGame(safeAreaTop: topPadding);
   }
 
+  void _startUIUpdateTimer() {
+    // Update UI every 100ms for smooth progress bar and timer updates
+    _uiUpdateTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
+      if (mounted && !isPaused) {
+        setState(() {
+          // This will trigger a rebuild with updated game state
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _uiUpdateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -63,6 +81,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _initializeGameMode() async {
+    if (_gameInitialized) return;
+
+    _gameInitialized = true;
+
+    // Wait a frame to ensure game is fully loaded
+    await Future.delayed(Duration(milliseconds: 100));
+
     if (widget.isLevelMode && widget.levelId != null) {
       // Load specific level
       await game.loadAndStartLevel(widget.levelId!);
@@ -121,12 +146,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               setState(() {
                 isPaused = false;
                 gameKey = UniqueKey();
+                _gameInitialized = false; // Reset initialization flag
                 _initializeGame();
               });
               // Re-initialize the game mode after creating new game instance
               Future.delayed(Duration(milliseconds: 100), () {
                 _initializeGameMode();
               });
+              // Restart the UI update timer
+              _startUIUpdateTimer();
             },
             child: Text('Restart', style: TextStyle(color: Colors.red)),
           ),
@@ -264,7 +292,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 // Level info overlay (only in level mode)
                 if (widget.isLevelMode && game.isLevelActive)
                   Positioned(
-                    top: 90,
+                    top: 80,
                     left: 20,
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -299,7 +327,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 // Level progress bar (only in level mode)
                 if (widget.isLevelMode && game.isLevelActive)
                   Positioned(
-                    bottom: 160,
+                    top: 0,
                     left: 20,
                     right: 20,
                     child: Container(
