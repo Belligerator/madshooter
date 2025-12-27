@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'level_selection_screen.dart';
-import 'game_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
   @override
@@ -83,35 +82,6 @@ class MainMenuScreen extends StatelessWidget {
                           () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => LevelSelectionScreen()),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    _buildMenuButton(
-                      context,
-                      'FREE PLAY',
-                      Icons.all_inclusive,
-                      Colors.green,
-                          () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GameScreen(isLevelMode: false),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    _buildMenuButton(
-                      context,
-                      'QUICK START',
-                      Icons.play_arrow,
-                      Colors.orange,
-                          () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GameScreen(
-                            levelId: 1,
-                            isLevelMode: true,
-                          ),
-                        ),
                       ),
                     ),
                   ],

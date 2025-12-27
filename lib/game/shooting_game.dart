@@ -339,4 +339,10 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   String get currentLevelName => levelManager.currentLevel?.name ?? 'Free Play';
   double get levelProgress => levelManager.progress;
   String get levelTimeRemaining => levelManager.timeRemaining;
+
+  // Level stats for end-game dialogs
+  int get levelKills => levelManager.levelKills;
+  int get levelDamage => levelManager.levelDamage;
+  double get levelTime => levelManager.levelTime;
+  int? get currentLevelId => levelManager.currentLevel?.levelId;
 }

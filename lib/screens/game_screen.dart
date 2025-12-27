@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flame/game.dart';
 import 'dart:async';
 import '../game/shooting_game.dart';
+import '../game/levels/level_manager.dart';
+import '../widgets/dialogs/level_complete_dialog.dart';
+import '../widgets/dialogs/level_failed_dialog.dart';
 import 'level_selection_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -26,6 +29,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Key gameKey = UniqueKey();
   Timer? _uiUpdateTimer;
   bool _gameInitialized = false;
+  bool _endGameDialogShown = false;
 
   @override
   void initState() {
@@ -47,6 +51,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     // Update UI every 100ms for smooth progress bar and timer updates
     _uiUpdateTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
       if (mounted && !isPaused) {
+        // Check for level end
+        if (!_endGameDialogShown) {
+          if (game.isLevelCompleted) {
+            _endGameDialogShown = true;
+            _showLevelCompleteDialog();
+          } else if (game.isLevelFailed) {
+            _endGameDialogShown = true;
+            _showLevelFailedDialog();
+          }
+        }
         setState(() {
           // This will trigger a rebuild with updated game state
         });
@@ -216,6 +230,91 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  Future<void> _showLevelCompleteDialog() async {
+    _pauseGame();
+
+    // Check if next level exists
+    bool hasNextLevel = false;
+    if (widget.levelId != null) {
+      final nextLevelData = await LevelManager.loadLevelData(widget.levelId! + 1);
+      hasNextLevel = nextLevelData != null;
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => LevelCompleteDialog(
+        timeSurvived: game.levelTime,
+        kills: game.levelKills,
+        damageTaken: game.levelDamage,
+        hasNextLevel: hasNextLevel,
+        onNextLevel: () {
+          Navigator.of(dialogContext).pop();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => GameScreen(
+                levelId: widget.levelId! + 1,
+                isLevelMode: true,
+              ),
+            ),
+          );
+        },
+        onRestart: () {
+          Navigator.of(dialogContext).pop();
+          _restartLevel();
+        },
+        onLevelSelect: () {
+          Navigator.of(dialogContext).pop();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => LevelSelectionScreen()),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showLevelFailedDialog() {
+    _pauseGame();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => LevelFailedDialog(
+        timeSurvived: game.levelTime,
+        kills: game.levelKills,
+        damageTaken: game.levelDamage,
+        onRestart: () {
+          Navigator.of(dialogContext).pop();
+          _restartLevel();
+        },
+        onLevelSelect: () {
+          Navigator.of(dialogContext).pop();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => LevelSelectionScreen()),
+          );
+        },
+      ),
+    );
+  }
+
+  void _restartLevel() {
+    setState(() {
+      isPaused = false;
+      gameKey = UniqueKey();
+      _gameInitialized = false;
+      _endGameDialogShown = false;
+      _initializeGame();
+    });
+    Future.delayed(Duration(milliseconds: 100), () {
+      _initializeGameMode();
+    });
   }
 
   @override
