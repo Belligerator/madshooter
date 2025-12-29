@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 
 import '../shooting_game.dart';
 import '../upgrade_config.dart';
+import 'upgrade_point.dart';
 
 enum BarrelType {
   bulletSize(Colors.brown, 0.1, 'Bullet Size', 0.5),        // 50% spawn chance - common
   fireRate(Colors.orange, 1.0, 'Fire Rate', 0.3),           // 30% spawn chance - uncommon
-  ally(Colors.green, 1.0, 'Ally', 0.2);                     // 20% spawn chance - rare
+  ally(Colors.green, 1.0, 'Ally', 0.2),                     // 20% spawn chance - rare
+  upgradePoint(Colors.amber, 0.0, 'Upgrade Point', 0.0);    // Only spawned via JSON
 
   const BarrelType(this.color, this.upgradeValue, this.displayName, this.spawnProbability);
 
@@ -27,7 +29,9 @@ enum BarrelType {
       case BarrelType.fireRate:
         return UpgradeConfig.maxFireRateMultiplier;
       case BarrelType.ally:
-        return UpgradeConfig.maxAllyCount; // Max number of allies
+        return UpgradeConfig.maxAllyCount;
+      case BarrelType.upgradePoint:
+        return 10.0; // Max UP
     }
   }
 
@@ -57,11 +61,13 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
   static final Random _random = Random();
 
   final BarrelType type;
+  final double? spawnXPercent; // Optional: 0.0-1.0 percentage of road width
+  final int dropUpgradePoints; // Number of UP to drop when destroyed
   int currentHealth = maxHealth;
   late RectangleComponent healthBarBackground;
   late RectangleComponent healthBarForeground;
 
-  Barrel({required this.type});
+  Barrel({required this.type, this.spawnXPercent, this.dropUpgradePoints = 0});
 
   @override
   Future<void> onLoad() async {
@@ -95,15 +101,17 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     );
     add(healthBarForeground);
 
-    // Spawn at random position within RIGHT HALF of road bounds
+    // Spawn at position within road bounds
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX; // Start from center of road
-    final rightBound = centerX + gameRef.roadWidth / 2 - size.x; // Use gameRef.roadWidth
+    final leftBound = centerX - gameRef.roadWidth / 2 + size.x;
+    final rightBound = centerX + gameRef.roadWidth / 2 - size.x;
     final headerHeight = 80.0;
 
-    // Random X position within RIGHT half of road
-    final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(randomX, headerHeight - size.y);
+    // X position within road (use percentage if provided, otherwise random)
+    final spawnX = spawnXPercent != null
+        ? leftBound + spawnXPercent! * (rightBound - leftBound)
+        : leftBound + _random.nextDouble() * (rightBound - leftBound);
+    position = Vector2(spawnX, headerHeight - size.y);
   }
 
   @override
@@ -147,14 +155,35 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Apply upgrade using enum data with max limits from config
     switch (type) {
       case BarrelType.bulletSize:
-        final applied = gameRef.upgradeBulletSize(type.upgradeValue);
+        gameRef.upgradeBulletSize(type.upgradeValue);
         break;
       case BarrelType.fireRate:
-        final applied = gameRef.upgradeFireRate(type.upgradeValue);
+        gameRef.upgradeFireRate(type.upgradeValue);
         break;
       case BarrelType.ally:
-        final applied = gameRef.addAlly();
+        gameRef.addAlly();
         break;
+      case BarrelType.upgradePoint:
+        // UP barrel only drops upgrade points, no direct upgrade
+        break;
+    }
+
+    // Spawn upgrade point collectibles
+    _spawnUpgradePoints();
+  }
+
+  void _spawnUpgradePoints() {
+    if (dropUpgradePoints <= 0) return;
+
+    final centerX = position.x + size.x / 2;
+    final centerY = position.y + size.y / 2;
+
+    for (int i = 0; i < dropUpgradePoints; i++) {
+      // Spread UP items slightly
+      final offsetX = (i - (dropUpgradePoints - 1) / 2) * 15.0;
+      final spawnPos = Vector2(centerX + offsetX, centerY);
+      final up = UpgradePoint(spawnPosition: spawnPos);
+      gameRef.add(up);
     }
   }
 }

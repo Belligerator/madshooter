@@ -7,9 +7,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
 
   late RectangleComponent background;
   late TextComponent killsLabel;
-  late TextComponent damageLabel;
-  late TextComponent bulletSizeLabel;
-  late TextComponent fireRateLabel;
+  final List<TextComponent> _healthHearts = [];
 
   @override
   Future<void> onLoad() async {
@@ -40,46 +38,26 @@ class Header extends Component with HasGameRef<ShootingGame> {
     );
     add(killsLabel);
 
-    // Add damage counter (in header, to the right of kills)
-    damageLabel = TextComponent(
-      text: 'Damage: 0',
-      position: Vector2(150, 15),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.red,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-    add(damageLabel);
+    // Add health hearts (in header, to the right of kills)
+    _createHealthHearts();
+  }
 
-    // Add bullet size multiplier label (below kills)
-    bulletSizeLabel = TextComponent(
-      text: 'Size: 1.0x',
-      position: Vector2(20, 40),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.green,
-          fontSize: 14,
+  void _createHealthHearts() {
+    // Create 3 heart positions (where damage label was)
+    for (int i = 0; i < 3; i++) {
+      final heart = TextComponent(
+        text: '❤',
+        textRenderer: TextPaint(
+          style: const TextStyle(
+            fontSize: 24,
+            color: Colors.red,
+          ),
         ),
-      ),
-    );
-    add(bulletSizeLabel);
-
-    final actualFireRate = gameRef.getFireRate(); // Get actual shots per second
-    // Add fire rate multiplier label (below escaped)
-    fireRateLabel = TextComponent(
-      text: 'Rate: ${actualFireRate.toStringAsFixed(1)}/s',
-      position: Vector2(150, 40),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          color: Colors.cyan,
-          fontSize: 14,
-        ),
-      ),
-    );
-    add(fireRateLabel);
+        position: Vector2(150 + (i * 30), 15),
+      );
+      _healthHearts.add(heart);
+      add(heart);
+    }
   }
 
   // Update the kill count display
@@ -87,19 +65,22 @@ class Header extends Component with HasGameRef<ShootingGame> {
     killsLabel.text = 'Kills: $kills';
   }
 
-  // Update the damage count display
-  void updateDamage(int damage) {
-    damageLabel.text = 'Damage: $damage';
+  // Update health hearts display
+  void updateHealth(int current, int max) {
+    // Update hearts: filled (❤) for current health, outlined (♡) for missing
+    for (int i = 0; i < max; i++) {
+      if (i < current) {
+        _healthHearts[i].text = '❤'; // Filled heart
+        _healthHearts[i].textRenderer = TextPaint(
+          style: const TextStyle(fontSize: 24, color: Colors.red),
+        );
+      } else {
+        _healthHearts[i].text = '♡'; // Outlined heart
+        _healthHearts[i].textRenderer = TextPaint(
+          style: const TextStyle(fontSize: 24, color: Colors.grey),
+        );
+      }
+    }
   }
 
-  // Update the bullet size multiplier display
-  void updateBulletSize(double multiplier) {
-    bulletSizeLabel.text = 'Size: ${multiplier.toStringAsFixed(1)}x';
-  }
-
-  // Update the fire rate multiplier display
-  void updateFireRate(double multiplier) {
-    final actualFireRate = gameRef.getFireRate(); // Get actual shots per second
-    fireRateLabel.text = 'Rate: ${actualFireRate.toStringAsFixed(1)}/s';
-  }
 }

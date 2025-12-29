@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../star_rating.dart';
 
 class LevelCompleteDialog extends StatelessWidget {
   final double timeSurvived;
@@ -9,6 +10,12 @@ class LevelCompleteDialog extends StatelessWidget {
   final VoidCallback onRestart;
   final VoidCallback onLevelSelect;
 
+  // Star rating data
+  final int starsEarned;
+  final int totalEnemies;
+  final bool allEnemiesKilled;
+  final bool noDamageTaken;
+
   const LevelCompleteDialog({
     super.key,
     required this.timeSurvived,
@@ -18,6 +25,10 @@ class LevelCompleteDialog extends StatelessWidget {
     required this.onNextLevel,
     required this.onRestart,
     required this.onLevelSelect,
+    required this.starsEarned,
+    required this.totalEnemies,
+    required this.allEnemiesKilled,
+    required this.noDamageTaken,
   });
 
   @override
@@ -25,25 +36,53 @@ class LevelCompleteDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: Colors.grey[900],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      title: Column(
         children: [
-          Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-          SizedBox(width: 12),
-          Text(
-            'Victory!',
-            style: TextStyle(
-              color: Colors.green,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+          // Star rating with animation
+          StarRating(
+            stars: starsEarned,
+            size: 40,
+            showAnimation: true,
+          ),
+          SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.emoji_events, color: Colors.amber, size: 32),
+              SizedBox(width: 12),
+              Text(
+                'Victory!',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Star requirements breakdown
+          _buildStarRequirement(
+            icon: Icons.check_circle,
+            label: 'Level Complete',
+            achieved: true, // Always true in victory dialog
+          ),
+          _buildStarRequirement(
+            icon: Icons.gps_fixed,
+            label: 'All Enemies Killed ($kills/$totalEnemies)',
+            achieved: allEnemiesKilled,
+          ),
+          _buildStarRequirement(
+            icon: Icons.shield,
+            label: 'No Damage Taken',
+            achieved: noDamageTaken,
+          ),
           SizedBox(height: 16),
+          // Stats row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -59,6 +98,41 @@ class LevelCompleteDialog extends StatelessWidget {
           _buildButton('Restart', Colors.orange, Icons.refresh, onRestart),
           SizedBox(height: 12),
           _buildButton('Level Select', Colors.blue, Icons.list, onLevelSelect),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStarRequirement({
+    required IconData icon,
+    required String label,
+    required bool achieved,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            achieved ? Icons.star : Icons.star_border,
+            color: achieved ? Colors.amber : Colors.grey,
+            size: 20,
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: achieved ? Colors.white : Colors.grey[500],
+                fontSize: 14,
+                decoration: achieved ? null : TextDecoration.lineThrough,
+              ),
+            ),
+          ),
+          Icon(
+            achieved ? Icons.check : Icons.close,
+            color: achieved ? Colors.green : Colors.red[300],
+            size: 18,
+          ),
         ],
       ),
     );

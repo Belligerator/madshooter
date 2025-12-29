@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../../shooting_game.dart';
+import '../upgrade_point.dart';
 
 abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double baseSpeed = 50.0;
@@ -14,11 +15,21 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   int currentHealth;
   Color enemyColor;
   double enemyRadius;
+  double? spawnXPercent; // Optional: 0.0-1.0 percentage of road width
+  int dropUpgradePoints; // Number of UP to drop when destroyed
+  bool destroyedOnPlayerCollision; // Can enemy be destroyed on collision (false for bosses)
 
   RectangleComponent? healthBarBackground;
   RectangleComponent? healthBarForeground;
 
-  BaseEnemy({required this.maxHealth, required this.enemyColor, required this.enemyRadius}) : currentHealth = maxHealth;
+  BaseEnemy({
+    required this.maxHealth,
+    required this.enemyColor,
+    required this.enemyRadius,
+    this.spawnXPercent,
+    this.dropUpgradePoints = 0,
+    this.destroyedOnPlayerCollision = true,
+  }) : currentHealth = maxHealth;
 
   @override
   Future<void> onLoad() async {
@@ -39,14 +50,16 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
       _createHealthBar();
     }
 
-    // Spawn at random position within LEFT HALF of road bounds
+    // Spawn at position within road bounds
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - gameRef.roadWidth / 2 + radius * 2; // Use gameRef.roadWidth
-    final rightBound = centerX - radius * 2; // Center of road (minus radius for safety)
+    final leftBound = centerX - gameRef.roadWidth / 2 + radius * 2;
+    final rightBound = centerX + gameRef.roadWidth / 2 - radius * 2;
     final headerHeight = 80.0;
 
-    final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(randomX, headerHeight - radius * 2);
+    final spawnX = spawnXPercent != null
+        ? leftBound + spawnXPercent! * (rightBound - leftBound)
+        : leftBound + _random.nextDouble() * (rightBound - leftBound);
+    position = Vector2(spawnX, headerHeight - radius * 2);
   }
 
   void _createHealthBar() {
@@ -119,5 +132,35 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   void onDestroyed() {
     // Notify game about kill
     gameRef.onSoldierKilled();
+
+    // Spawn upgrade points if configured
+    _spawnUpgradePoints();
+  }
+
+  void _spawnUpgradePoints() {
+    if (dropUpgradePoints <= 0) return;
+
+    final centerX = position.x + radius;
+    final centerY = position.y + radius;
+
+    for (int i = 0; i < dropUpgradePoints; i++) {
+      // Spread UP items slightly
+      final offsetX = (i - (dropUpgradePoints - 1) / 2) * 15.0;
+      final spawnPos = Vector2(centerX + offsetX, centerY);
+      final up = UpgradePoint(spawnPosition: spawnPos);
+      gameRef.add(up);
+    }
+  }
+
+  // Called when player collides with enemy
+  void onPlayerCollision() {
+    // Deal fixed damage to player
+    gameRef.takeDamage(1);
+
+    // Destroy enemy if configured (default true, false for bosses)
+    if (destroyedOnPlayerCollision) {
+      onDestroyed(); // Count as kill and drop UP
+      removeFromParent();
+    }
   }
 }

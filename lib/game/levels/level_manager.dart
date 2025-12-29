@@ -22,6 +22,7 @@ class LevelManager {
   // Level progress tracking
   int levelKills = 0;
   int levelDamage = 0;
+  int totalEnemiesSpawned = 0;
 
   LevelManager(this.gameRef);
 
@@ -90,10 +91,10 @@ class LevelManager {
   void _executeEvent(LevelEvent event) {
     switch (event.type) {
       case 'spawn_enemy':
-        _spawnEnemyEvent(event.parameters);
+        _spawnEnemyEvent(event.parameters, event.spawnX);
         break;
       case 'spawn_barrel':
-        _spawnBarrelEvent(event.parameters);
+        _spawnBarrelEvent(event.parameters, event.spawnX);
         break;
       case 'message':
         _showMessageEvent(event.parameters);
@@ -103,20 +104,22 @@ class LevelManager {
     }
   }
 
-  void _spawnEnemyEvent(Map<String, dynamic> params) {
+  void _spawnEnemyEvent(Map<String, dynamic> params, double? spawnX) {
     final enemyType = params['enemy_type'] as String;
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
+    final dropUp = params['drop_up'] as int? ?? 0;
 
     for (int i = 0; i < count; i++) {
+      totalEnemiesSpawned++; // Track total enemies for star calculation
       switch (enemyType) {
         case 'basic_soldier':
-          final enemy = BasicSoldier();
-          gameRef.add(enemy);
+          final enemy = BasicSoldier(spawnXPercent: spawnX, dropUpgradePoints: dropUp);
+          gameRef.spawnEnemy(enemy);
           break;
         case 'heavy_soldier':
-          final enemy = HeavySoldier();
-          gameRef.add(enemy);
+          final enemy = HeavySoldier(spawnXPercent: spawnX, dropUpgradePoints: dropUp);
+          gameRef.spawnEnemy(enemy);
           break;
       }
 
@@ -129,8 +132,9 @@ class LevelManager {
     print('Spawned $count $enemyType enemies');
   }
 
-  void _spawnBarrelEvent(Map<String, dynamic> params) {
+  void _spawnBarrelEvent(Map<String, dynamic> params, double? spawnX) {
     final barrelTypeString = params['barrel_type'] as String;
+    final dropUp = params['drop_up'] as int? ?? 0;
 
     BarrelType barrelType;
     switch (barrelTypeString) {
@@ -143,11 +147,17 @@ class LevelManager {
       case 'ally':
         barrelType = BarrelType.ally;
         break;
+      case 'upgrade_point':
+        barrelType = BarrelType.upgradePoint;
+        break;
       default:
         barrelType = BarrelType.bulletSize;
     }
 
-    final barrel = Barrel(type: barrelType);
+    // For upgrade_point barrel, default to 1 UP if not specified
+    final actualDropUp = barrelType == BarrelType.upgradePoint && dropUp == 0 ? 1 : dropUp;
+
+    final barrel = Barrel(type: barrelType, spawnXPercent: spawnX, dropUpgradePoints: actualDropUp);
     gameRef.add(barrel);
 
     print('Spawned ${barrelType.displayName} barrel');
@@ -155,8 +165,7 @@ class LevelManager {
 
   void _showMessageEvent(Map<String, dynamic> params) {
     final message = params['message'] as String;
-    // You can implement UI message display here
-    print('Level Message: $message');
+    gameRef.showMessage(message);
   }
 
   void _checkVictoryConditions() {
@@ -164,24 +173,18 @@ class LevelManager {
 
     final conditions = currentLevel!.victoryConditions;
 
-    // Check if level duration completed
-    if (conditions.surviveDuration != null &&
-        levelTime >= conditions.surviveDuration!) {
-      _completeLevelSuccess();
-      return;
-    }
-
-    // Check if too much damage taken
+    // Check failure first - too much damage taken
     if (conditions.maxDamageTaken != null &&
         levelDamage > conditions.maxDamageTaken!) {
       _completeLevelFailure();
       return;
     }
 
-    // Check if minimum kills reached (and all events processed)
-    if (conditions.minKills != null &&
-        levelKills >= conditions.minKills! &&
-        currentEventIndex >= currentLevel!.events.length) {
+    // Victory: All events processed AND all enemies cleared
+    final allEventsProcessed = currentEventIndex >= currentLevel!.events.length;
+    final allEnemiesCleared = gameRef.enemiesAlive == 0;
+
+    if (allEventsProcessed && allEnemiesCleared) {
       _completeLevelSuccess();
       return;
     }
@@ -205,6 +208,7 @@ class LevelManager {
     currentEventIndex = 0;
     levelKills = 0;
     levelDamage = 0;
+    totalEnemiesSpawned = 0;
   }
 
   void _applyStartingConditions() {
@@ -240,6 +244,13 @@ class LevelManager {
     levelDamage += damage;
   }
 
+  // Called when player health reaches 0
+  void onPlayerDeath() {
+    if (levelState == LevelState.running) {
+      _completeLevelFailure();
+    }
+  }
+
   // Getters for UI
   double get progress {
     if (currentLevel?.victoryConditions.surviveDuration != null) {
@@ -255,4 +266,16 @@ class LevelManager {
     }
     return '';
   }
+
+  // Star rating getters
+  int get starsEarned {
+    if (levelState != LevelState.completed) return 0;
+    int stars = 1; // Star 1: Completion (always earned when completed)
+    if (allEnemiesKilled) stars++; // Star 2: All enemies killed
+    if (noDamageTaken) stars++; // Star 3: No damage taken
+    return stars;
+  }
+
+  bool get allEnemiesKilled => totalEnemiesSpawned > 0 && levelKills == totalEnemiesSpawned;
+  bool get noDamageTaken => levelDamage == 0;
 }

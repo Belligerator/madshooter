@@ -48,6 +48,17 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   double bulletSizeMultiplier = 1.0;
   double additionalFireRate = 0.0; // Additional shots per second
 
+  // Upgrade points (UP)
+  int upgradePoints = 0;
+  static const int maxUpgradePoints = 10;
+
+  // Player health
+  int playerHealth = 3;
+  static const int maxPlayerHealth = 3;
+
+  // In-game messages
+  String? currentMessage;
+
   // Constructor to accept safe area padding
   ShootingGame({this.safeAreaTop = 0.0});
 
@@ -100,16 +111,15 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       _handleBarrelSpawning(dt);
     }
 
-    // Clean up dead enemies from our tracking list and check for escaped
+    // Clean up dead enemies from our tracking list
     _enemies.removeWhere((enemy) {
       if (enemy.isRemoved) {
         return true; // Remove from tracking list
       }
 
-      // Check if enemy escaped (reached bottom without being killed)
+      // Check if enemy escaped (reached bottom)
       if (enemy.position.y > size.y) {
-        enemy.onEscaped(); // Deal damage based on enemy type
-        return true; // Remove from tracking list
+        return true; // Just remove, no damage (damage only on collision now)
       }
 
       return false; // Keep in tracking list
@@ -146,17 +156,21 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   void _spawnBasicSoldiers() {
     for (int i = 0; i < BasicSoldier.soldiersPerSpawn; i++) {
       final enemy = BasicSoldier();
-      _enemies.add(enemy);
-      add(enemy);
+      spawnEnemy(enemy);
     }
   }
 
   void _spawnHeavySoldiers() {
     for (int i = 0; i < HeavySoldier.soldiersPerSpawn; i++) {
       final enemy = HeavySoldier();
-      _enemies.add(enemy);
-      add(enemy);
+      spawnEnemy(enemy);
     }
+  }
+
+  // Public method to spawn enemy and track it
+  void spawnEnemy(BaseEnemy enemy) {
+    _enemies.add(enemy);
+    add(enemy);
   }
 
   void _spawnBarrel() {
@@ -181,11 +195,20 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Called when player takes damage from escaped enemies
   void takeDamage(int damage) {
+    playerHealth -= damage;
     totalDamage += damage;
 
-    // Notify level manager if in level mode
+    // Notify level manager if in level mode (before death check to track final damage)
     if (isLevelMode) {
       levelManager.onDamageTaken(damage);
+    }
+
+    // Check for death
+    if (playerHealth <= 0) {
+      playerHealth = 0; // Clamp at 0
+      if (isLevelMode) {
+        levelManager.onPlayerDeath();
+      }
     }
 
     _updateLabels();
@@ -193,12 +216,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   void _updateLabels() {
     header.updateKills(killCount);
-    header.updateDamage(totalDamage);
+    header.updateHealth(playerHealth, maxPlayerHealth);
   }
 
   void updateUpgradeLabels() {
-    header.updateBulletSize(bulletSizeMultiplier);
-    header.updateFireRate(getFireRate()); // Pass actual fire rate instead of multiplier
+    // Upgrade labels removed from UI
   }
 
   // Pause/Resume methods (called from Flutter widget)
@@ -251,6 +273,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Reset upgrades
     bulletSizeMultiplier = 1.0;
     additionalFireRate = 0.0;
+    upgradePoints = 0;
+    playerHealth = maxPlayerHealth;
+    currentMessage = null;
 
     // Reset spawning timers
     _timeSinceLastBarrelSpawn = 0;
@@ -309,6 +334,21 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     return true; // Upgrade applied
   }
 
+  void addUpgradePoint() {
+    if (upgradePoints < maxUpgradePoints) {
+      upgradePoints++;
+    }
+  }
+
+  // Message display methods
+  void showMessage(String message) {
+    currentMessage = message;
+  }
+
+  void clearMessage() {
+    currentMessage = null;
+  }
+
   // Get current bullet size with upgrades applied
   Vector2 getBulletSize() {
     final baseSize = Vector2(UpgradeConfig.baseBulletWidth, UpgradeConfig.baseBulletHeight);
@@ -343,6 +383,13 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Level stats for end-game dialogs
   int get levelKills => levelManager.levelKills;
   int get levelDamage => levelManager.levelDamage;
+  int get enemiesAlive => _enemies.length;
   double get levelTime => levelManager.levelTime;
   int? get currentLevelId => levelManager.currentLevel?.levelId;
+
+  // Star rating getters
+  int get totalEnemiesSpawned => levelManager.totalEnemiesSpawned;
+  bool get allEnemiesKilled => levelManager.allEnemiesKilled;
+  bool get noDamageTaken => levelManager.noDamageTaken;
+  int get starsEarned => levelManager.starsEarned;
 }

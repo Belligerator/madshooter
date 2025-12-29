@@ -6,10 +6,17 @@ class HeavySoldier extends BaseEnemy {
   static const double spawnInterval = 8.0; // Spawn every 5 seconds
   static const int soldiersPerSpawn = 1;   // Spawn 1 at a time
 
-  HeavySoldier() : super(
+  HeavySoldier({
+    double? spawnXPercent,
+    int dropUpgradePoints = 0,
+    bool destroyedOnPlayerCollision = true,
+  }) : super(
     maxHealth: 10,
     enemyColor: Colors.purple,
     enemyRadius: 16.0, // Bigger than basic soldier (12.0)
+    spawnXPercent: spawnXPercent,
+    dropUpgradePoints: dropUpgradePoints,
+    destroyedOnPlayerCollision: destroyedOnPlayerCollision,
   );
 
   @override

@@ -3,6 +3,8 @@ import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'bullet.dart';
+import 'upgrade_point.dart';
+import 'enemies/base_enemy.dart';
 
 class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
@@ -81,5 +83,19 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
 
     // Add bullet to the game
     gameRef.add(bullet);
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    super.onCollision(intersectionPoints, other);
+
+    if (other is UpgradePoint) {
+      other.collect();
+    }
+
+    // Handle enemy collision
+    if (other is BaseEnemy) {
+      other.onPlayerCollision();
+    }
   }
 }

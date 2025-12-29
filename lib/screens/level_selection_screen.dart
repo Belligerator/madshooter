@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import '../game/levels/level_data.dart';
 import '../game/levels/level_manager.dart';
+import '../services/progress_service.dart';
+import '../widgets/star_rating.dart';
 import 'game_screen.dart';
 
 class LevelSelectionScreen extends StatefulWidget {
@@ -12,6 +14,7 @@ class LevelSelectionScreen extends StatefulWidget {
 
 class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   List<LevelData> availableLevels = [];
+  Map<int, int> levelStars = {};
   bool isLoading = true;
 
   @override
@@ -34,8 +37,12 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
       }
     }
 
+    // Load star progress
+    final stars = await ProgressService.getAllLevelStars();
+
     setState(() {
       availableLevels = levels;
+      levelStars = stars;
       isLoading = false;
     });
   }
@@ -87,6 +94,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   }
 
   Widget _buildLevelCard(BuildContext context, LevelData level) {
+    final stars = levelStars[level.levelId] ?? 0;
+
     return Card(
       color: Colors.grey[900],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -109,6 +118,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
                       style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  SizedBox(width: 8),
+                  StarRating(stars: stars, size: 16),
                   Spacer(),
                   Icon(Icons.timer, color: Colors.grey[400], size: 16),
                   SizedBox(width: 4),

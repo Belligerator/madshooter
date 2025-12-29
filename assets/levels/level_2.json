@@ -87,7 +87,6 @@
     }
   ],
   "victory_conditions": {
-    "survive_duration": 60,
     "max_damage_taken": 40
   }
 }

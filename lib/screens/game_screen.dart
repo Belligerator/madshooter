@@ -8,16 +8,16 @@ import '../game/shooting_game.dart';
 import '../game/levels/level_manager.dart';
 import '../widgets/dialogs/level_complete_dialog.dart';
 import '../widgets/dialogs/level_failed_dialog.dart';
+import '../widgets/up_meter.dart';
+import '../widgets/game_message_banner.dart';
+import '../services/progress_service.dart';
 import 'level_selection_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final int? levelId;
   final bool isLevelMode;
 
-  GameScreen({
-    this.levelId,
-    required this.isLevelMode,
-  });
+  GameScreen({this.levelId, required this.isLevelMode});
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -30,6 +30,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Timer? _uiUpdateTimer;
   bool _gameInitialized = false;
   bool _endGameDialogShown = false;
+  String? _displayedMessage;
 
   @override
   void initState() {
@@ -42,8 +43,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _initializeGame() {
-    final topPadding = WidgetsBinding.instance.window.padding.top /
-        WidgetsBinding.instance.window.devicePixelRatio;
+    final topPadding = WidgetsBinding.instance.window.padding.top / WidgetsBinding.instance.window.devicePixelRatio;
     game = ShootingGame(safeAreaTop: topPadding);
   }
 
@@ -61,6 +61,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             _showLevelFailedDialog();
           }
         }
+
+        // Check for new message
+        if (game.currentMessage != null && _displayedMessage != game.currentMessage) {
+          _displayedMessage = game.currentMessage;
+        }
+
         setState(() {
           // This will trigger a rebuild with updated game state
         });
@@ -86,10 +92,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _pauseGame();
         break;
       case AppLifecycleState.resumed:
-      // Don't auto-resume, let user choose
+        // Don't auto-resume, let user choose
         break;
       case AppLifecycleState.inactive:
-      // Don't pause for inactive (e.g., notification pull-down)
+        // Don't pause for inactive (e.g., notification pull-down)
         break;
     }
   }
@@ -108,14 +114,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     } else if (!widget.isLevelMode) {
       // Start free play mode
       game.setLevelMode(false);
-    }
-  }
-
-  void _togglePause() {
-    if (isPaused) {
-      _resumeGame();
-    } else {
-      _pauseGame();
     }
   }
 
@@ -142,10 +140,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
         title: Text('Restart?', style: TextStyle(color: Colors.white)),
-        content: Text(
-          'Are you sure you want to restart?',
-          style: TextStyle(color: Colors.grey[300]),
-        ),
+        content: Text('Are you sure you want to restart?', style: TextStyle(color: Colors.grey[300])),
         actions: [
           TextButton(
             onPressed: () {
@@ -212,10 +207,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               title: Text('Level Select', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LevelSelectionScreen()),
-                );
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LevelSelectionScreen()));
               },
             ),
             ListTile(
@@ -242,6 +234,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       hasNextLevel = nextLevelData != null;
     }
 
+    // Save stars to persistence
+    final starsEarned = game.starsEarned;
+    if (widget.levelId != null) {
+      await ProgressService.saveBestStars(widget.levelId!, starsEarned);
+    }
+
     if (!mounted) return;
 
     showDialog(
@@ -252,16 +250,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         kills: game.levelKills,
         damageTaken: game.levelDamage,
         hasNextLevel: hasNextLevel,
+        starsEarned: starsEarned,
+        totalEnemies: game.totalEnemiesSpawned,
+        allEnemiesKilled: game.allEnemiesKilled,
+        noDamageTaken: game.noDamageTaken,
         onNextLevel: () {
           Navigator.of(dialogContext).pop();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (_) => GameScreen(
-                levelId: widget.levelId! + 1,
-                isLevelMode: true,
-              ),
-            ),
+            MaterialPageRoute(builder: (_) => GameScreen(levelId: widget.levelId! + 1, isLevelMode: true)),
           );
         },
         onRestart: () {
@@ -270,10 +267,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         },
         onLevelSelect: () {
           Navigator.of(dialogContext).pop();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => LevelSelectionScreen()),
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LevelSelectionScreen()));
         },
       ),
     );
@@ -295,10 +289,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         },
         onLevelSelect: () {
           Navigator.of(dialogContext).pop();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => LevelSelectionScreen()),
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LevelSelectionScreen()));
         },
       ),
     );
@@ -334,122 +325,59 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ),
       ),
       body: FutureBuilder(
-          future: _initializeGameMode(),
-          builder: (context, snapshot) {
-            return Stack(
-              children: [
-                // Game widget
-                GameWidget(
-                  key: gameKey,
-                  game: game,
-                ),
+        future: _initializeGameMode(),
+        builder: (context, snapshot) {
+          return Stack(
+            children: [
+              // Game widget
+              GameWidget(key: gameKey, game: game),
 
-                // Game controls overlay
+              // Menu button (moved to where pause button was)
+              Positioned(
+                top: 15,
+                right: 20,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  child: FloatingActionButton(
+                    heroTag: "menu_button",
+                    onPressed: _showGameMenu,
+                    backgroundColor: Colors.black.withOpacity(0.7),
+                    child: Icon(Icons.menu, color: Colors.white, size: 24),
+                    mini: true,
+                  ),
+                ),
+              ),
+
+              // UP meter on right side
+              Positioned(
+                right: 20,
+                top: 130,
+                child: UpMeter(currentPoints: game.upgradePoints, maxPoints: ShootingGame.maxUpgradePoints),
+              ),
+
+              // In-game message banner
+              if (_displayedMessage != null)
                 Positioned(
-                  top: 15,
-                  right: 20,
-                  child: Column(
-                    children: [
-                      // Pause/Resume button
-                      Container(
-                        width: 50,
-                        height: 50,
-                        child: FloatingActionButton(
-                          heroTag: "pause_button", // Add unique hero tag
-                          onPressed: _togglePause,
-                          backgroundColor: Colors.black.withOpacity(0.7),
-                          child: Icon(
-                            isPaused ? Icons.play_arrow : Icons.pause,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          mini: true,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-
-                      // Menu button
-                      Container(
-                        width: 50,
-                        height: 50,
-                        child: FloatingActionButton(
-                          heroTag: "menu_button", // Add unique hero tag
-                          onPressed: _showGameMenu,
-                          backgroundColor: Colors.black.withOpacity(0.7),
-                          child: Icon(
-                            Icons.menu,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          mini: true,
-                        ),
-                      ),
-                    ],
+                  top: 100,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: GameMessageBanner(
+                      key: ValueKey(_displayedMessage),
+                      message: _displayedMessage!,
+                      onDismissed: () {
+                        setState(() {
+                          _displayedMessage = null;
+                          game.clearMessage();
+                        });
+                      },
+                    ),
                   ),
                 ),
-
-                // Level info overlay (only in level mode)
-                if (widget.isLevelMode && game.isLevelActive)
-                  Positioned(
-                    top: 80,
-                    left: 20,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            game.currentLevelName,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (game.levelTimeRemaining.isNotEmpty)
-                            Text(
-                              '${game.levelTimeRemaining}s left',
-                              style: TextStyle(
-                                color: Colors.grey[300],
-                                fontSize: 10,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Level progress bar (only in level mode)
-                if (widget.isLevelMode && game.isLevelActive)
-                  Positioned(
-                    top: 0,
-                    left: 20,
-                    right: 20,
-                    child: Container(
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: game.levelProgress,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }
+            ],
+          );
+        },
       ),
     );
   }
