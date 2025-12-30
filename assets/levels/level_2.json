@@ -1,92 +1,109 @@
 {
   "levelId": 2,
-  "name": "Reinforced Squad",
+  "name": "Under Pressure",
   "duration": 60,
-  "description": "Advanced combat with enhanced firepower. Start with bigger bullets, +1 shot per second, and an ally.",
+  "description": "Face real combat with waves of enemies and heavy soldiers!",
   "starting_conditions": {
-    "bullet_size_multiplier": 1.5,
-    "additional_fire_rate": 1.0,
-    "ally_count": 1
+    "bullet_size_multiplier": 1.0,
+    "additional_fire_rate": 0.0,
+    "ally_count": 0
   },
   "events": [
     {
       "timestamp": 1.0,
       "type": "message",
-      "message": "Enhanced weapons ready! Show them what you've got!"
+      "message": "Prepare for battle!"
     },
     {
-      "timestamp": 2.0,
+      "timestamp": 3.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 3,
+      "spawn_pattern": "spread",
+      "drop_up": 1
+    },
+    {
+      "timestamp": 8.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 2,
+      "spawn_pattern": "spread"
+    },
+    {
+      "timestamp": 15.0,
+      "type": "spawn_barrel",
+      "barrel_type": "upgrade_point",
+      "spawn_x": 0.5,
+      "drop_up": 2
+    },
+    {
+      "timestamp": 18.0,
+      "type": "message",
+      "message": "Heavy units incoming!"
+    },
+    {
+      "timestamp": 20.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "spawn_pattern": "single",
+      "spawn_x": 0.5,
+      "drop_up": 2
+    },
+    {
+      "timestamp": 24.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 3,
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 8.0,
+      "timestamp": 28.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 1,
-      "spawn_pattern": "single"
+      "count": 2,
+      "spawn_pattern": "spread",
+      "drop_up": 1
     },
     {
-      "timestamp": 12.0,
+      "timestamp": 32.0,
+      "type": "spawn_barrel",
+      "barrel_type": "ally",
+      "spawn_x": 0.5
+    },
+    {
+      "timestamp": 35.0,
+      "type": "message",
+      "message": "Final assault!"
+    },
+    {
+      "timestamp": 37.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 4,
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 18.0,
-      "type": "spawn_barrel",
-      "barrel_type": "ally"
-    },
-    {
-      "timestamp": 22.0,
+      "timestamp": 42.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
       "count": 2,
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 30.0,
-      "type": "message",
-      "message": "Wave incoming! Heavy resistance!"
-    },
-    {
-      "timestamp": 31.0,
+      "timestamp": 47.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 5,
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 35.0,
-      "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
-      "count": 1,
-      "spawn_pattern": "single"
-    },
-    {
-      "timestamp": 40.0,
-      "type": "spawn_barrel",
-      "barrel_type": "fire_rate"
-    },
-    {
-      "timestamp": 45.0,
+      "timestamp": 52.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
       "count": 3,
       "spawn_pattern": "spread"
-    },
-    {
-      "timestamp": 50.0,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 6,
-      "spawn_pattern": "spread"
     }
   ],
-  "victory_conditions": {
-    "max_damage_taken": 40
-  }
+  "victory_conditions": {}
 }
