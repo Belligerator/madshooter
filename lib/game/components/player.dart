@@ -56,6 +56,24 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     position.x = targetX;
   }
 
+  void moveByDelta(double deltaX) {
+    // Move player by the same amount as thumb (1:1 relative movement)
+    position.x += deltaX;
+    position.x = position.x.clamp(leftBoundary, rightBoundary);
+  }
+
+  // Joystick-style constant speed movement
+  static const double baseSpeed = 200.0; // pixels per second
+  double speedMultiplier = 1.0; // can be upgraded later
+
+  void moveConstantSpeed(int direction, double dt) {
+    final moveSpeed = baseSpeed * speedMultiplier;
+    position.x += direction * moveSpeed * dt;
+
+    // Clamp to road boundaries
+    position.x = position.x.clamp(leftBoundary, rightBoundary);
+  }
+
   @override
   void update(double dt) {
     super.update(dt);

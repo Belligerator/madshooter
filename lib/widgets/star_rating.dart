@@ -26,11 +26,12 @@ class StarRating extends StatelessWidget {
         final isFilled = index < stars;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: showAnimation && isFilled
+          child: showAnimation
               ? _AnimatedStar(
                   size: size,
-                  color: filledColor,
-                  delay: Duration(milliseconds: 200 * index),
+                  color: isFilled ? filledColor : emptyColor,
+                  isFilled: isFilled,
+                  delay: Duration(milliseconds: 400 * index),
                 )
               : Icon(
                   isFilled ? Icons.star : Icons.star_border,
@@ -46,11 +47,13 @@ class StarRating extends StatelessWidget {
 class _AnimatedStar extends StatefulWidget {
   final double size;
   final Color color;
+  final bool isFilled;
   final Duration delay;
 
   const _AnimatedStar({
     required this.size,
     required this.color,
+    required this.isFilled,
     required this.delay,
   });
 
@@ -90,7 +93,7 @@ class _AnimatedStarState extends State<_AnimatedStar>
     return ScaleTransition(
       scale: _scaleAnimation,
       child: Icon(
-        Icons.star,
+        widget.isFilled ? Icons.star : Icons.star_border,
         size: widget.size,
         color: widget.color,
       ),

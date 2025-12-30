@@ -10,6 +10,7 @@ class UpgradePoint extends CircleComponent with HasGameRef<ShootingGame>, Collis
 
   UpgradePoint({required Vector2 spawnPosition}) {
     position = spawnPosition;
+    anchor = Anchor.center;
   }
 
   @override

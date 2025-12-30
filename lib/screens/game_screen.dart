@@ -311,7 +311,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final topPadding = MediaQuery.of(context).padding.top;
     game.safeAreaTop = topPadding;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -398,6 +400,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           );
         },
       ),
+    ),
     );
   }
 }

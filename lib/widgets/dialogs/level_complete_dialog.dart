@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../star_rating.dart';
 
-class LevelCompleteDialog extends StatelessWidget {
+class LevelCompleteDialog extends StatefulWidget {
   final double timeSurvived;
   final int kills;
   final int damageTaken;
@@ -30,6 +30,11 @@ class LevelCompleteDialog extends StatelessWidget {
   });
 
   @override
+  State<LevelCompleteDialog> createState() => _LevelCompleteDialogState();
+}
+
+class _LevelCompleteDialogState extends State<LevelCompleteDialog> {
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.grey[900],
@@ -38,7 +43,7 @@ class LevelCompleteDialog extends StatelessWidget {
         children: [
           // Star rating with animation
           StarRating(
-            stars: starsEarned,
+            stars: widget.starsEarned,
             size: 40,
             showAnimation: true,
           ),
@@ -63,73 +68,41 @@ class LevelCompleteDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Star requirements breakdown
-          _buildStarRequirement(
+          // Star requirements breakdown with animation
+          _AnimatedStarRequirement(
             icon: Icons.check_circle,
             label: 'Level Complete',
-            achieved: true, // Always true in victory dialog
+            achieved: true,
+            delay: Duration(milliseconds: 0),
           ),
-          _buildStarRequirement(
+          _AnimatedStarRequirement(
             icon: Icons.gps_fixed,
-            label: '50%+ Kills (${killPercentage.toStringAsFixed(0)}%)',
-            achieved: killPercentage >= 50,
+            label: '50%+ Kills (${widget.killPercentage.toStringAsFixed(0)}%)',
+            achieved: widget.killPercentage >= 50,
+            delay: Duration(milliseconds: 400),
           ),
-          _buildStarRequirement(
+          _AnimatedStarRequirement(
             icon: Icons.military_tech,
-            label: '90%+ Kills (${killPercentage.toStringAsFixed(0)}%)',
-            achieved: killPercentage >= 90,
+            label: '90%+ Kills (${widget.killPercentage.toStringAsFixed(0)}%)',
+            achieved: widget.killPercentage >= 90,
+            delay: Duration(milliseconds: 800),
           ),
           SizedBox(height: 16),
           // Stats row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatItem(Icons.timer, '${timeSurvived.toStringAsFixed(1)}s', 'Time'),
-              _buildStatItem(Icons.my_location, '$kills/$totalEnemies', 'Kills'),
+              _buildStatItem(Icons.timer, '${widget.timeSurvived.toStringAsFixed(1)}s', 'Time'),
+              _buildStatItem(Icons.my_location, '${widget.kills}/${widget.totalEnemies}', 'Kills'),
             ],
           ),
           SizedBox(height: 24),
-          if (hasNextLevel)
-            _buildButton('Next Level', Colors.green, Icons.arrow_forward, onNextLevel),
-          if (hasNextLevel) SizedBox(height: 12),
-          _buildButton('Restart', Colors.orange, Icons.refresh, onRestart),
+          if (widget.hasNextLevel)
+            _buildButton('Next Level', Colors.green, Icons.arrow_forward, widget.onNextLevel),
+          if (widget.hasNextLevel) SizedBox(height: 12),
+          _buildButton('Restart', Colors.orange, Icons.refresh, widget.onRestart),
           SizedBox(height: 12),
-          _buildButton('Level Select', Colors.blue, Icons.list, onLevelSelect),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStarRequirement({
-    required IconData icon,
-    required String label,
-    required bool achieved,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(
-            achieved ? Icons.star : Icons.star_border,
-            color: achieved ? Colors.amber : Colors.grey,
-            size: 20,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: achieved ? Colors.white : Colors.grey[500],
-                fontSize: 14,
-                decoration: achieved ? null : TextDecoration.lineThrough,
-              ),
-            ),
-          ),
-          Icon(
-            achieved ? Icons.check : Icons.close,
-            color: achieved ? Colors.green : Colors.red[300],
-            size: 18,
-          ),
+          _buildButton('Level Select', Colors.blue, Icons.list, widget.onLevelSelect),
         ],
       ),
     );
@@ -168,6 +141,86 @@ class LevelCompleteDialog extends StatelessWidget {
           foregroundColor: Colors.white,
           padding: EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedStarRequirement extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool achieved;
+  final Duration delay;
+
+  const _AnimatedStarRequirement({
+    required this.icon,
+    required this.label,
+    required this.achieved,
+    required this.delay,
+  });
+
+  @override
+  State<_AnimatedStarRequirement> createState() => _AnimatedStarRequirementState();
+}
+
+class _AnimatedStarRequirementState extends State<_AnimatedStarRequirement>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: FadeTransition(
+        opacity: _opacityAnimation,
+        child: Row(
+          children: [
+            Icon(
+              widget.achieved ? Icons.star : Icons.star_border,
+              color: widget.achieved ? Colors.amber : Colors.grey,
+              size: 20,
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.label,
+                style: TextStyle(
+                  color: widget.achieved ? Colors.white : Colors.grey[500],
+                  fontSize: 14,
+                  decoration: widget.achieved ? null : TextDecoration.lineThrough,
+                ),
+              ),
+            ),
+            Icon(
+              widget.achieved ? Icons.check : Icons.close,
+              color: widget.achieved ? Colors.green : Colors.red[300],
+              size: 18,
+            ),
+          ],
         ),
       ),
     );

@@ -125,13 +125,13 @@ class UpgradeButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.amber,
+          color: Colors.amber.withAlpha(100),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.amber.withAlpha(150),
-              blurRadius: 12,
-              spreadRadius: 2,
+              color: Colors.amber.withAlpha(80),
+              blurRadius: 8,
+              spreadRadius: 1,
             ),
           ],
         ),

@@ -144,9 +144,12 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     final centerY = position.y + radius;
 
     for (int i = 0; i < dropUpgradePoints; i++) {
-      // Spread UP items slightly
-      final offsetX = (i - (dropUpgradePoints - 1) / 2) * 15.0;
-      final spawnPos = Vector2(centerX + offsetX, centerY);
+      // Random spread in a small radius for multiple UPs
+      final randomRadius = dropUpgradePoints > 1 ? _random.nextDouble() * 15.0 : 0.0;
+      final randomAngle = _random.nextDouble() * 2 * pi;
+      final offsetX = randomRadius * cos(randomAngle);
+      final offsetY = randomRadius * sin(randomAngle);
+      final spawnPos = Vector2(centerX + offsetX, centerY + offsetY);
       final up = UpgradePoint(spawnPosition: spawnPos);
       gameRef.add(up);
     }
