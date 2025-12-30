@@ -14,6 +14,13 @@ import 'upgrade_config.dart';
 import 'levels/level_manager.dart';
 import 'levels/level_state.dart';
 
+// Tiered upgrade system - Operation Spacehog style
+enum UpgradeTier {
+  bulletSize,  // Tier 1: 1 UP
+  fireRate,    // Tier 2: 2 UP
+  ally,        // Tier 3: 3+ UP
+}
+
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
   late Road road;
@@ -48,9 +55,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   double bulletSizeMultiplier = 1.0;
   double additionalFireRate = 0.0; // Additional shots per second
 
-  // Upgrade points (UP)
+  // Upgrade points (UP) - max 3 for tiered upgrades
   int upgradePoints = 0;
-  static const int maxUpgradePoints = 10;
+  static const int maxUpgradePoints = 3;
 
   // Player health
   int playerHealth = 3;
@@ -337,7 +344,47 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   void addUpgradePoint() {
     if (upgradePoints < maxUpgradePoints) {
       upgradePoints++;
+    } else {
+      // Full meter - try to restore health, otherwise restart UP
+      if (playerHealth < maxPlayerHealth) {
+        playerHealth++;
+        _updateLabels();
+      }
+      // Always restart UP when full (after health restore or if health is max)
+      upgradePoints = 0;
     }
+  }
+
+  // Get current upgrade tier based on UP count (null if 0 UP)
+  UpgradeTier? getCurrentTier() {
+    if (upgradePoints == 1) return UpgradeTier.bulletSize;
+    if (upgradePoints == 2) return UpgradeTier.fireRate;
+    if (upgradePoints >= 3) return UpgradeTier.ally;
+    return null; // 0 UP = no upgrade available
+  }
+
+  // Apply upgrade for current tier, spend all UP
+  bool applyTieredUpgrade() {
+    final tier = getCurrentTier();
+    if (tier == null) return false; // No UP, no upgrade
+
+    bool applied = false;
+    switch (tier) {
+      case UpgradeTier.bulletSize:
+        applied = upgradeBulletSize(0.2); // +0.2x per upgrade
+        break;
+      case UpgradeTier.fireRate:
+        applied = upgradeFireRate(1.0); // +1 shot/sec per upgrade
+        break;
+      case UpgradeTier.ally:
+        applied = addAlly();
+        break;
+    }
+
+    if (applied) {
+      upgradePoints = 0; // Spend all UP
+    }
+    return applied;
   }
 
   // Message display methods

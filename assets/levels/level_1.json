@@ -15,53 +15,60 @@
       "message": "Enemies approaching! Stay alert!"
     },
     {
-      "timestamp": 3.0,
+      "timestamp": 5,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 1,
       "spawn_pattern": "single",
-      "spawn_x": 0.5
+      "spawn_x": 0.5,
+      "drop_up": 1
     },
 
     {
-      "timestamp": 3.5,
+      "timestamp": 10,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 1,
       "spawn_pattern": "single",
-      "spawn_x": 0.6
-    },
-    {
-      "timestamp": 4,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 1,
-      "spawn_pattern": "single",
-      "spawn_x": 0.7
-    },
-    {
-      "timestamp": 4.5,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 1,
-      "spawn_pattern": "single",
-      "spawn_x": 0.8
-    },
-    {
-      "timestamp": 8.0,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 2,
-      "spawn_pattern": "spread"
-    },
-    {
-      "timestamp": 15.0,
-      "type": "spawn_barrel",
-      "barrel_type": "upgrade_point",
+      "spawn_x": 0.5,
       "drop_up": 1
     },
     {
-      "timestamp": 18.0,
+      "timestamp": 15,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_pattern": "single",
+      "spawn_x": 0.5,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 20,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_pattern": "single",
+      "spawn_x": 0.5,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 25,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 2,
+      "spawn_pattern": "spread",
+      "spawn_x": 0.5,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 30,
+      "type": "spawn_barrel",
+      "barrel_type": "upgrade_point",
+      "spawn_x": 0.5,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 35,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 3,

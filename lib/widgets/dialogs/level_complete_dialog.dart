@@ -73,7 +73,7 @@ class LevelCompleteDialog extends StatelessWidget {
           ),
           _buildStarRequirement(
             icon: Icons.gps_fixed,
-            label: 'All Enemies Killed ($kills/$totalEnemies)',
+            label: 'All Enemies Killed',
             achieved: allEnemiesKilled,
           ),
           _buildStarRequirement(

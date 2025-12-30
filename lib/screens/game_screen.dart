@@ -349,11 +349,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-              // UP meter on right side
+              // UP meter on right side (tappable for upgrades)
               Positioned(
                 right: 20,
                 top: 130,
-                child: UpMeter(currentPoints: game.upgradePoints, maxPoints: ShootingGame.maxUpgradePoints),
+                child: UpMeter(
+                  currentPoints: game.upgradePoints,
+                  maxPoints: ShootingGame.maxUpgradePoints,
+                  currentTier: game.getCurrentTier(),
+                  onTap: () {
+                    game.applyTieredUpgrade();
+                  },
+                ),
               ),
 
               // In-game message banner
