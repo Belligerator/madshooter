@@ -267,15 +267,19 @@ class LevelManager {
     return '';
   }
 
-  // Star rating getters
+  // Star rating getters - based on kill percentage
   int get starsEarned {
     if (levelState != LevelState.completed) return 0;
-    int stars = 1; // Star 1: Completion (always earned when completed)
-    if (allEnemiesKilled) stars++; // Star 2: All enemies killed
-    if (noDamageTaken) stars++; // Star 3: No damage taken
+    int stars = 1; // Star 1: Level completion
+    if (totalEnemiesSpawned == 0) return stars;
+
+    final killPercent = (levelKills / totalEnemiesSpawned) * 100;
+    if (killPercent >= 50) stars++; // Star 2: 50%+ kills
+    if (killPercent >= 90) stars++; // Star 3: 90%+ kills
     return stars;
   }
 
-  bool get allEnemiesKilled => totalEnemiesSpawned > 0 && levelKills == totalEnemiesSpawned;
-  bool get noDamageTaken => levelDamage == 0;
+  double get killPercentage => totalEnemiesSpawned > 0
+      ? (levelKills / totalEnemiesSpawned) * 100
+      : 0;
 }

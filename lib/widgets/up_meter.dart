@@ -2,202 +2,159 @@ import 'package:flutter/material.dart';
 import '../game/shooting_game.dart';
 
 class UpMeter extends StatelessWidget {
-  final int currentPoints;
-  final int maxPoints;
-  final UpgradeTier? currentTier;
-  final VoidCallback? onTap;
+  final int upgradePoints;
+  final int bulletSizeLevel;
+  final int fireRateLevel;
+  final int allyLevel;
+  final void Function(UpgradeTier tier)? onUpgradeTap;
 
   const UpMeter({
     super.key,
-    required this.currentPoints,
-    this.maxPoints = 10,
-    this.currentTier,
-    this.onTap,
+    required this.upgradePoints,
+    required this.bulletSizeLevel,
+    required this.fireRateLevel,
+    required this.allyLevel,
+    this.onUpgradeTap,
   });
+
+  bool _isTierAvailable(UpgradeTier tier) {
+    switch (tier) {
+      case UpgradeTier.bulletSize:
+        return upgradePoints >= 1;
+      case UpgradeTier.fireRate:
+        return upgradePoints >= 2;
+      case UpgradeTier.ally:
+        return upgradePoints >= 3;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final canUpgrade = currentTier != null;
-
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(180),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: canUpgrade ? _getTierColor() : Colors.grey[700]!,
-          width: 2,
-        ),
+        borderRadius: BorderRadius.circular(6),
       ),
-      child: Column(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // UP count display
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.amber.withAlpha(50),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.bolt, color: Colors.amber, size: 16),
-                SizedBox(width: 4),
-                Text(
-                  '$currentPoints',
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8),
-
-          // Tier icons
-          _buildTierIcon(
+          _buildUpgradeItem(
             tier: UpgradeTier.bulletSize,
             icon: Icons.circle,
-            label: '1',
-            requiredUp: 1,
+            level: bulletSizeLevel,
           ),
-          SizedBox(height: 4),
-          _buildTierIcon(
+          SizedBox(width: 4),
+          _buildUpgradeItem(
             tier: UpgradeTier.fireRate,
             icon: Icons.speed,
-            label: '2',
-            requiredUp: 2,
+            level: fireRateLevel,
           ),
-          SizedBox(height: 4),
-          _buildTierIcon(
+          SizedBox(width: 4),
+          _buildUpgradeItem(
             tier: UpgradeTier.ally,
-            icon: Icons.person_add,
-            label: '3',
-            requiredUp: 3,
-          ),
-          SizedBox(height: 8),
-
-          // Upgrade button
-          GestureDetector(
-            onTap: canUpgrade ? onTap : null,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: canUpgrade ? _getTierColor() : Colors.grey[800],
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: canUpgrade
-                    ? [
-                        BoxShadow(
-                          color: _getTierColor().withAlpha(100),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.upgrade,
-                    color: canUpgrade ? Colors.white : Colors.grey,
-                    size: 18,
-                  ),
-                  SizedBox(width: 4),
-                  Text(
-                    canUpgrade ? 'UP!' : '---',
-                    style: TextStyle(
-                      color: canUpgrade ? Colors.white : Colors.grey,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            icon: Icons.person,
+            level: allyLevel,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTierIcon({
+  Widget _buildUpgradeItem({
     required UpgradeTier tier,
     required IconData icon,
-    required String label,
-    required int requiredUp,
+    required int level,
   }) {
-    final isActive = currentTier == tier;
-    final isAvailable = currentPoints >= requiredUp;
-    final color = _getTierColorFor(tier);
+    final isAvailable = _isTierAvailable(tier);
+    final color = Colors.amber;
 
-    // Fixed size container to prevent layout shifts
-    return SizedBox(
-      width: 70,
-      height: 36,
+    return GestureDetector(
+      onTap: isAvailable ? () => onUpgradeTap?.call(tier) : null,
       child: Container(
-        padding: EdgeInsets.all(6),
+        padding: EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: isActive ? color.withAlpha(50) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isAvailable ? color.withAlpha(50) : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
           border: Border.all(
-            color: isActive ? color : (isAvailable ? color.withAlpha(100) : Colors.grey[700]!),
-            width: 2, // Always same width
+            color: isAvailable ? color : Colors.grey[700]!,
+            width: 1,
           ),
         ),
-        child: Row(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: isActive ? color : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isActive ? color : (isAvailable ? color.withAlpha(100) : Colors.grey[700]!),
-                  width: 1,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isActive ? Colors.white : (isAvailable ? color : Colors.grey),
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 6),
             Icon(
               icon,
-              color: isActive ? color : (isAvailable ? color.withAlpha(150) : Colors.grey[600]),
-              size: 18,
+              color: isAvailable ? color : Colors.grey[500],
+              size: 14,
+            ),
+            SizedBox(height: 2),
+            Text(
+              '$level',
+              style: TextStyle(
+                color: isAvailable ? color : Colors.grey[400],
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Color _getTierColor() {
-    if (currentTier == null) return Colors.grey;
-    return _getTierColorFor(currentTier!);
-  }
+// Separate upgrade button widget
+class UpgradeButton extends StatelessWidget {
+  final bool canUpgrade;
+  final VoidCallback? onTap;
 
-  Color _getTierColorFor(UpgradeTier tier) {
-    switch (tier) {
-      case UpgradeTier.bulletSize:
-        return Colors.brown[400]!;
-      case UpgradeTier.fireRate:
-        return Colors.orange;
-      case UpgradeTier.ally:
-        return Colors.green;
-    }
+  const UpgradeButton({
+    super.key,
+    required this.canUpgrade,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!canUpgrade) return SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.amber,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.amber.withAlpha(150),
+              blurRadius: 12,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.upgrade,
+              color: Colors.black,
+              size: 20,
+            ),
+            SizedBox(width: 6),
+            Text(
+              'UP!',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

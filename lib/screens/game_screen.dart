@@ -252,8 +252,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         hasNextLevel: hasNextLevel,
         starsEarned: starsEarned,
         totalEnemies: game.totalEnemiesSpawned,
-        allEnemiesKilled: game.allEnemiesKilled,
-        noDamageTaken: game.noDamageTaken,
+        killPercentage: game.killPercentage,
         onNextLevel: () {
           Navigator.of(dialogContext).pop();
           Navigator.pushReplacement(
@@ -282,7 +281,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       builder: (dialogContext) => LevelFailedDialog(
         timeSurvived: game.levelTime,
         kills: game.levelKills,
-        damageTaken: game.levelDamage,
         onRestart: () {
           Navigator.of(dialogContext).pop();
           _restartLevel();
@@ -349,16 +347,30 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-              // UP meter on right side (tappable for upgrades)
+              // UP meter in header area (left side)
+              Positioned(
+                left: 20,
+                top: 20,
+                child: UpMeter(
+                  upgradePoints: game.upgradePoints,
+                  bulletSizeLevel: game.bulletSizeLevel,
+                  fireRateLevel: game.fireRateLevel,
+                  allyLevel: game.allyLevel,
+                  onUpgradeTap: (tier) {
+                    game.applyUpgrade(tier);
+                  },
+                ),
+              ),
+
+              // Upgrade button at bottom right near thumb
               Positioned(
                 right: 20,
-                top: 130,
-                child: UpMeter(
-                  currentPoints: game.upgradePoints,
-                  maxPoints: ShootingGame.maxUpgradePoints,
-                  currentTier: game.getCurrentTier(),
+                bottom: 120,
+                child: UpgradeButton(
+                  canUpgrade: game.getHighestAvailableTier() != null,
                   onTap: () {
-                    game.applyTieredUpgrade();
+                    final tier = game.getHighestAvailableTier();
+                    if (tier != null) game.applyUpgrade(tier);
                   },
                 ),
               ),

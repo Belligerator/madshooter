@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class LevelFailedDialog extends StatelessWidget {
   final double timeSurvived;
   final int kills;
-  final int damageTaken;
   final VoidCallback onRestart;
   final VoidCallback onLevelSelect;
 
@@ -11,7 +10,6 @@ class LevelFailedDialog extends StatelessWidget {
     super.key,
     required this.timeSurvived,
     required this.kills,
-    required this.damageTaken,
     required this.onRestart,
     required this.onLevelSelect,
   });
@@ -45,7 +43,6 @@ class LevelFailedDialog extends StatelessWidget {
             children: [
               _buildStatItem(Icons.timer, '${timeSurvived.toStringAsFixed(1)}s', 'Time'),
               _buildStatItem(Icons.my_location, '$kills', 'Kills'),
-              _buildStatItem(Icons.heart_broken, '$damageTaken', 'Damage'),
             ],
           ),
           SizedBox(height: 24),

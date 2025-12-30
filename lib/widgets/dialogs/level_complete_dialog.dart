@@ -13,8 +13,7 @@ class LevelCompleteDialog extends StatelessWidget {
   // Star rating data
   final int starsEarned;
   final int totalEnemies;
-  final bool allEnemiesKilled;
-  final bool noDamageTaken;
+  final double killPercentage;
 
   const LevelCompleteDialog({
     super.key,
@@ -27,8 +26,7 @@ class LevelCompleteDialog extends StatelessWidget {
     required this.onLevelSelect,
     required this.starsEarned,
     required this.totalEnemies,
-    required this.allEnemiesKilled,
-    required this.noDamageTaken,
+    required this.killPercentage,
   });
 
   @override
@@ -73,13 +71,13 @@ class LevelCompleteDialog extends StatelessWidget {
           ),
           _buildStarRequirement(
             icon: Icons.gps_fixed,
-            label: 'All Enemies Killed',
-            achieved: allEnemiesKilled,
+            label: '50%+ Kills (${killPercentage.toStringAsFixed(0)}%)',
+            achieved: killPercentage >= 50,
           ),
           _buildStarRequirement(
-            icon: Icons.shield,
-            label: 'No Damage Taken',
-            achieved: noDamageTaken,
+            icon: Icons.military_tech,
+            label: '90%+ Kills (${killPercentage.toStringAsFixed(0)}%)',
+            achieved: killPercentage >= 90,
           ),
           SizedBox(height: 16),
           // Stats row
@@ -87,8 +85,7 @@ class LevelCompleteDialog extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildStatItem(Icons.timer, '${timeSurvived.toStringAsFixed(1)}s', 'Time'),
-              _buildStatItem(Icons.my_location, '$kills', 'Kills'),
-              _buildStatItem(Icons.heart_broken, '$damageTaken', 'Damage'),
+              _buildStatItem(Icons.my_location, '$kills/$totalEnemies', 'Kills'),
             ],
           ),
           SizedBox(height: 24),

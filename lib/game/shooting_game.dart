@@ -59,9 +59,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   int upgradePoints = 0;
   static const int maxUpgradePoints = 3;
 
-  // Player health
-  int playerHealth = 3;
-  static const int maxPlayerHealth = 3;
+  // Player health - one hit death
+  int playerHealth = 1;
+  static const int maxPlayerHealth = 1;
 
   // In-game messages
   String? currentMessage;
@@ -342,39 +342,47 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   }
 
   void addUpgradePoint() {
+    // Just increment UP - collecting more after 3 does nothing until upgrade applied
     if (upgradePoints < maxUpgradePoints) {
       upgradePoints++;
-    } else {
-      // Full meter - try to restore health, otherwise restart UP
-      if (playerHealth < maxPlayerHealth) {
-        playerHealth++;
-        _updateLabels();
-      }
-      // Always restart UP when full (after health restore or if health is max)
-      upgradePoints = 0;
+    }
+    // When at max, collecting more UP does nothing (user must upgrade first)
+  }
+
+  // Check if a specific tier is available based on UP count
+  bool isTierAvailable(UpgradeTier tier) {
+    switch (tier) {
+      case UpgradeTier.bulletSize:
+        return upgradePoints >= 1;
+      case UpgradeTier.fireRate:
+        return upgradePoints >= 2;
+      case UpgradeTier.ally:
+        return upgradePoints >= 3;
     }
   }
 
-  // Get current upgrade tier based on UP count (null if 0 UP)
-  UpgradeTier? getCurrentTier() {
-    if (upgradePoints == 1) return UpgradeTier.bulletSize;
-    if (upgradePoints == 2) return UpgradeTier.fireRate;
+  // Get highest available tier (for UP button)
+  UpgradeTier? getHighestAvailableTier() {
     if (upgradePoints >= 3) return UpgradeTier.ally;
-    return null; // 0 UP = no upgrade available
+    if (upgradePoints >= 2) return UpgradeTier.fireRate;
+    if (upgradePoints >= 1) return UpgradeTier.bulletSize;
+    return null;
   }
 
-  // Apply upgrade for current tier, spend all UP
-  bool applyTieredUpgrade() {
-    final tier = getCurrentTier();
-    if (tier == null) return false; // No UP, no upgrade
+  // Legacy getter for compatibility
+  UpgradeTier? getCurrentTier() => getHighestAvailableTier();
+
+  // Apply specific upgrade, reset UP
+  bool applyUpgrade(UpgradeTier tier) {
+    if (!isTierAvailable(tier)) return false;
 
     bool applied = false;
     switch (tier) {
       case UpgradeTier.bulletSize:
-        applied = upgradeBulletSize(0.2); // +0.2x per upgrade
+        applied = upgradeBulletSize(0.2);
         break;
       case UpgradeTier.fireRate:
-        applied = upgradeFireRate(1.0); // +1 shot/sec per upgrade
+        applied = upgradeFireRate(1.0);
         break;
       case UpgradeTier.ally:
         applied = addAlly();
@@ -382,9 +390,16 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
 
     if (applied) {
-      upgradePoints = 0; // Spend all UP
+      upgradePoints = 0; // Reset UP after any upgrade
     }
     return applied;
+  }
+
+  // Legacy method for compatibility
+  bool applyTieredUpgrade() {
+    final tier = getHighestAvailableTier();
+    if (tier == null) return false;
+    return applyUpgrade(tier);
   }
 
   // Message display methods
@@ -436,7 +451,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Star rating getters
   int get totalEnemiesSpawned => levelManager.totalEnemiesSpawned;
-  bool get allEnemiesKilled => levelManager.allEnemiesKilled;
-  bool get noDamageTaken => levelManager.noDamageTaken;
+  double get killPercentage => levelManager.killPercentage;
   int get starsEarned => levelManager.starsEarned;
+
+  // Upgrade level getters (for UI display)
+  int get bulletSizeLevel => ((bulletSizeMultiplier - 1.0) / 0.2).round();
+  int get fireRateLevel => (additionalFireRate / 1.0).round();
+  int get allyLevel => allyCount;
 }
