@@ -50,7 +50,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Check if bullet collided with any enemy
     if (other is BaseEnemy) {
       // Damage the enemy
-      other.takeDamage(1);
+      other.takeDamage(gameRef.getBulletDamage());
 
       // Remove bullet
       removeFromParent();
@@ -60,7 +60,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Check if bullet collided with a barrel
     if (other is Barrel) {
       // Damage the barrel
-      other.takeDamage(1);
+      other.takeDamage(gameRef.getBulletDamage());
 
       // Remove the bullet
       removeFromParent();

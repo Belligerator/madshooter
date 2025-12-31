@@ -6,10 +6,7 @@ import 'components/ally.dart';
 import 'components/road.dart';
 import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
-import 'components/enemies/basic_soldier.dart';
-import 'components/enemies/heavy_soldier.dart';
 import 'components/header.dart';
-import 'components/barrel.dart';
 import 'upgrade_config.dart';
 import 'levels/level_manager.dart';
 import 'levels/level_state.dart';
@@ -35,12 +32,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Game state
   bool isPaused = false;
-  bool isLevelMode = false;
-
-  // Spawning timers (for free play mode)
-  double _timeSinceLastBarrelSpawn = 0;
-  double _timeSinceLastBasicSpawn = 0;
-  double _timeSinceLastHeavySpawn = 0;
 
   final Random _random = Random();
   final List<BaseEnemy> _enemies = [];
@@ -108,15 +99,8 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
       ally.updatePosition(player.position);
     }
 
-    // Update level manager if in level mode
-    if (isLevelMode) {
-      levelManager.update(dt);
-    } else {
-      // Handle enemy spawning in free play mode only
-      _handleBasicSoldierSpawning(dt);
-      _handleHeavySoldierSpawning(dt);
-      _handleBarrelSpawning(dt);
-    }
+    // Update level manager
+    levelManager.update(dt);
 
     // Clean up dead enemies from our tracking list
     _enemies.removeWhere((enemy) {
@@ -133,89 +117,29 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     });
   }
 
-  void _handleBasicSoldierSpawning(double dt) {
-    _timeSinceLastBasicSpawn += dt;
-
-    if (_timeSinceLastBasicSpawn >= BasicSoldier.spawnInterval) {
-      _spawnBasicSoldiers();
-      _timeSinceLastBasicSpawn = 0;
-    }
-  }
-
-  void _handleHeavySoldierSpawning(double dt) {
-    _timeSinceLastHeavySpawn += dt;
-
-    if (_timeSinceLastHeavySpawn >= HeavySoldier.spawnInterval) {
-      _spawnHeavySoldiers();
-      _timeSinceLastHeavySpawn = 0;
-    }
-  }
-
-  void _handleBarrelSpawning(double dt) {
-    _timeSinceLastBarrelSpawn += dt;
-
-    if (_timeSinceLastBarrelSpawn >= Barrel.spawnInterval) {
-      _spawnBarrel();
-      _timeSinceLastBarrelSpawn = 0;
-    }
-  }
-
-  void _spawnBasicSoldiers() {
-    for (int i = 0; i < BasicSoldier.soldiersPerSpawn; i++) {
-      final enemy = BasicSoldier();
-      spawnEnemy(enemy);
-    }
-  }
-
-  void _spawnHeavySoldiers() {
-    for (int i = 0; i < HeavySoldier.soldiersPerSpawn; i++) {
-      final enemy = HeavySoldier();
-      spawnEnemy(enemy);
-    }
-  }
-
   // Public method to spawn enemy and track it
   void spawnEnemy(BaseEnemy enemy) {
     _enemies.add(enemy);
     add(enemy);
   }
 
-  void _spawnBarrel() {
-    // Use probability-based barrel type selection
-    final barrelType = BarrelType.getRandomBarrelType(_random);
-
-    final barrel = Barrel(type: barrelType);
-    add(barrel);
-  }
-
   // Called when a soldier is killed by bullet collision
   void onSoldierKilled() {
     killCount++;
-
-    // Notify level manager if in level mode
-    if (isLevelMode) {
-      levelManager.onEnemyKilled();
-    }
-
+    levelManager.onEnemyKilled();
     _updateLabels();
   }
 
-  // Called when player takes damage from escaped enemies
+  // Called when player takes damage
   void takeDamage(int damage) {
     playerHealth -= damage;
     totalDamage += damage;
-
-    // Notify level manager if in level mode (before death check to track final damage)
-    if (isLevelMode) {
-      levelManager.onDamageTaken(damage);
-    }
+    levelManager.onDamageTaken(damage);
 
     // Check for death
     if (playerHealth <= 0) {
-      playerHealth = 0; // Clamp at 0
-      if (isLevelMode) {
-        levelManager.onPlayerDeath();
-      }
+      playerHealth = 0;
+      levelManager.onPlayerDeath();
     }
 
     _updateLabels();
@@ -244,18 +168,9 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   }
 
   // Level management methods
-  void setLevelMode(bool enabled) {
-    isLevelMode = enabled;
-    if (!enabled) {
-      // Reset to free play mode
-      levelManager.levelState = LevelState.notStarted;
-    }
-  }
-
   Future<void> loadAndStartLevel(int levelId) async {
     await levelManager.loadLevel(levelId);
     levelManager.startLevel();
-    isLevelMode = true;
   }
 
   // Reset game state for new level or restart
@@ -283,11 +198,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     upgradePoints = 0;
     playerHealth = maxPlayerHealth;
     currentMessage = null;
-
-    // Reset spawning timers
-    _timeSinceLastBarrelSpawn = 0;
-    _timeSinceLastBasicSpawn = 0;
-    _timeSinceLastHeavySpawn = 0;
 
     // Update UI
     _updateLabels();
@@ -417,6 +327,12 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     return Vector2(baseSize.x * bulletSizeMultiplier, baseSize.y * bulletSizeMultiplier);
   }
 
+  // Get current bullet damage with upgrades applied
+  int getBulletDamage() {
+    const baseDamage = 100;
+    return baseDamage + (bulletSizeLevel * 50);
+  }
+
   // Get current fire rate with upgrades applied (shots per second)
   double getFireRate() {
     return UpgradeConfig.baseFireRate + additionalFireRate;
@@ -434,11 +350,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   double get gameAreaTop => headerHeight + safeAreaTop;
 
   // Level status getters for UI
-  bool get isLevelActive => isLevelMode && levelManager.levelState == LevelState.running;
-  bool get isLevelCompleted => isLevelMode && levelManager.levelState == LevelState.completed;
-  bool get isLevelFailed => isLevelMode && levelManager.levelState == LevelState.failed;
+  bool get isLevelActive => levelManager.levelState == LevelState.running;
+  bool get isLevelCompleted => levelManager.levelState == LevelState.completed;
+  bool get isLevelFailed => levelManager.levelState == LevelState.failed;
 
-  String get currentLevelName => levelManager.currentLevel?.name ?? 'Free Play';
+  String get currentLevelName => levelManager.currentLevel?.name ?? '';
   double get levelProgress => levelManager.progress;
   String get levelTimeRemaining => levelManager.timeRemaining;
 

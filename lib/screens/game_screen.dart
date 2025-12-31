@@ -14,10 +14,9 @@ import '../services/progress_service.dart';
 import 'level_selection_screen.dart';
 
 class GameScreen extends StatefulWidget {
-  final int? levelId;
-  final bool isLevelMode;
+  final int levelId;
 
-  GameScreen({this.levelId, required this.isLevelMode});
+  GameScreen({required this.levelId});
 
   @override
   _GameScreenState createState() => _GameScreenState();
@@ -108,13 +107,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     // Wait a frame to ensure game is fully loaded
     await Future.delayed(Duration(milliseconds: 100));
 
-    if (widget.isLevelMode && widget.levelId != null) {
-      // Load specific level
-      await game.loadAndStartLevel(widget.levelId!);
-    } else if (!widget.isLevelMode) {
-      // Start free play mode
-      game.setLevelMode(false);
-    }
+    await game.loadAndStartLevel(widget.levelId);
   }
 
   void _pauseGame() {
@@ -228,17 +221,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _pauseGame();
 
     // Check if next level exists
-    bool hasNextLevel = false;
-    if (widget.levelId != null) {
-      final nextLevelData = await LevelManager.loadLevelData(widget.levelId! + 1);
-      hasNextLevel = nextLevelData != null;
-    }
+    final nextLevelData = await LevelManager.loadLevelData(widget.levelId + 1);
+    final hasNextLevel = nextLevelData != null;
 
     // Save stars to persistence
     final starsEarned = game.starsEarned;
-    if (widget.levelId != null) {
-      await ProgressService.saveBestStars(widget.levelId!, starsEarned);
-    }
+    await ProgressService.saveBestStars(widget.levelId, starsEarned);
 
     if (!mounted) return;
 
@@ -257,7 +245,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           Navigator.of(dialogContext).pop();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => GameScreen(levelId: widget.levelId! + 1, isLevelMode: true)),
+            MaterialPageRoute(builder: (_) => GameScreen(levelId: widget.levelId + 1)),
           );
         },
         onRestart: () {

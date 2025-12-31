@@ -198,7 +198,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   void _startLevel(BuildContext context, int levelId) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => GameScreen(levelId: levelId, isLevelMode: true)),
+      MaterialPageRoute(builder: (context) => GameScreen(levelId: levelId)),
     );
   }
 }

@@ -79,12 +79,6 @@
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 36.0,
-      "type": "spawn_barrel",
-      "barrel_type": "ally",
-      "spawn_x": 0.5
-    },
-    {
       "timestamp": 38.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",

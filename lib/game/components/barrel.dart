@@ -56,8 +56,7 @@ enum BarrelType {
 
 class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
   static const double speed = 20.0;
-  static const int maxHealth = 8;
-  static const double spawnInterval = 5.0; // Spawn barrel every 5 seconds
+  static const int maxHealth = 800;
   static final Random _random = Random();
 
   final BarrelType type;
