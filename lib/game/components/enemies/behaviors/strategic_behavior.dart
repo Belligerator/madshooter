@@ -62,7 +62,7 @@ class StrategicBehavior extends MovementBehavior {
     this.continueOnComplete = true,
     this.orbitRadius = 50.0,
     this.orbitSpeed = 1.0,
-    this.reactionTime = 1,
+    this.reactionTime = 2,
   });
 
   @override

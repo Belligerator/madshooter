@@ -58,7 +58,8 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   String? currentMessage;
 
   // Constructor to accept safe area padding
-  ShootingGame();
+  final int initialLevelId;
+  ShootingGame({required this.initialLevelId});
 
   // Game area dimensions (excluding header)
   double get gameWidth => size.x;
@@ -85,7 +86,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     world = worldComponent;
 
     // Add all game components to world
-    spaceBackground = SpaceBackground();
+    spaceBackground = SpaceBackground(initialLevelId: initialLevelId);
     player = Player();
     playerSlider = PlayerSlider();
 

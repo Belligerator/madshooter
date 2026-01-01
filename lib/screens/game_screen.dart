@@ -44,7 +44,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _initializeGame() {
-    game = ShootingGame();
+    game = ShootingGame(initialLevelId: widget.levelId);
   }
 
   void _startUIUpdateTimer() {

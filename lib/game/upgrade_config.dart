@@ -9,6 +9,9 @@ class UpgradeConfig {
   static const double baseBulletHeight = 8.0;
   static const double baseFireRate = 1.0;              // Shots per second (instead of seconds between shots)
 
+  // Level configuration
+  static const int maxLevel = 4; // Maximum number of levels available
+
 // Future upgrade types can be added here
 // static const double maxBulletSpeedMultiplier = 2.0;
 // static const double maxBulletDamageMultiplier = 5.0;

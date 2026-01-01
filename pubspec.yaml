@@ -28,3 +28,6 @@ flutter:
   assets:
     - assets/levels/
     - assets/images/parallax/
+    - assets/images/parallax/level_1/
+    - assets/images/parallax/level_2/
+    - assets/images/parallax/level_3/

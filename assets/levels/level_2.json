@@ -33,7 +33,7 @@
       "spawn_x": 0.7,
       "movement": "sine",
       "amplitude": 40,
-      "frequency": 3.0,
+      "frequency": 0.5,
       "drop_up": 1
     },
     {
@@ -191,7 +191,7 @@
       "count": 2,
       "movement": "sine",
       "amplitude": 60,
-      "frequency": 2.5
+      "frequency": 0.5
     },
     {
       "timestamp": 77.0,
