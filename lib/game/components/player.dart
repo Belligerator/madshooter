@@ -13,7 +13,8 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
 
   late double leftBoundary;
   late double rightBoundary;
-  late double centerX;
+  late double topBoundary;
+  late double bottomBoundary;
 
   double _timeSinceLastShot = 0;
 
@@ -31,22 +32,25 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Add collision detection
     add(CircleHitbox());
 
-    // Set boundaries and position
-    centerX = gameRef.size.x / 2 - radius;
-    leftBoundary = centerX - gameRef.roadWidth / 2;
-    rightBoundary = centerX + gameRef.roadWidth / 2;
+    // Set full-screen boundaries
+    leftBoundary = radius;
+    rightBoundary = gameRef.size.x - radius;
+    topBoundary = radius;
+    bottomBoundary = gameRef.size.y - radius;
 
-    // Position at bottom center of road
+    // Position at bottom center of screen
+    final centerX = gameRef.size.x / 2 - radius;
     position = Vector2(centerX, gameRef.size.y - playerBottomPositionY - radius);
   }
 
-  void move(double joystickX) {
+  void move(double joystickX, double joystickY) {
     // Direct proportional movement based on joystick input
-    final targetX = centerX + (joystickX * 2);
+    position.x += joystickX * 2;
+    position.y += joystickY * 2;
 
-    // Clamp to road boundaries
-    final clampedX = targetX.clamp(leftBoundary, rightBoundary);
-    position.x = clampedX;
+    // Clamp to screen boundaries
+    position.x = position.x.clamp(leftBoundary, rightBoundary);
+    position.y = position.y.clamp(topBoundary, bottomBoundary);
   }
 
   void moveToSliderPosition(double sliderValue) {
@@ -56,10 +60,12 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     position.x = targetX;
   }
 
-  void moveByDelta(double deltaX) {
+  void moveByDelta(double deltaX, double deltaY) {
     // Move player by the same amount as thumb (1:1 relative movement)
     position.x += deltaX;
+    position.y += deltaY;
     position.x = position.x.clamp(leftBoundary, rightBoundary);
+    position.y = position.y.clamp(topBoundary, bottomBoundary);
   }
 
   // Joystick-style constant speed movement
