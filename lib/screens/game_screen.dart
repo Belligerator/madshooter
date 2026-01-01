@@ -42,8 +42,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _initializeGame() {
-    final topPadding = WidgetsBinding.instance.window.padding.top / WidgetsBinding.instance.window.devicePixelRatio;
-    game = ShootingGame(safeAreaTop: topPadding);
+    game = ShootingGame();
   }
 
   void _startUIUpdateTimer() {
@@ -296,99 +295,98 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
-    game.safeAreaTop = topPadding;
-
     return PopScope(
       canPop: false,
       child: Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
         backgroundColor: Colors.black,
-        elevation: 0,
-        toolbarHeight: 0,
-        systemOverlayStyle: const SystemUiOverlayStyle(
-          statusBarColor: Colors.black,
-          statusBarIconBrightness: Brightness.light,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          toolbarHeight: 0,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            statusBarColor: Colors.black,
+            statusBarIconBrightness: Brightness.light,
+          ),
         ),
-      ),
-      body: FutureBuilder(
-        future: _initializeGameMode(),
-        builder: (context, snapshot) {
-          return Stack(
-            children: [
-              // Game widget
-              GameWidget(key: gameKey, game: game),
-
-              // Menu button (moved to where pause button was)
-              Positioned(
-                top: 15,
-                right: 20,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  child: FloatingActionButton(
-                    heroTag: "menu_button",
-                    onPressed: _showGameMenu,
-                    backgroundColor: Colors.black.withOpacity(0.7),
-                    child: Icon(Icons.menu, color: Colors.white, size: 24),
-                    mini: true,
+        body: SafeArea(
+          child: FutureBuilder(
+            future: _initializeGameMode(),
+            builder: (context, snapshot) {
+              return Stack(
+                children: [
+                  // Game widget
+                  GameWidget(key: gameKey, game: game),
+          
+                  // Menu button (moved to where pause button was)
+                  Positioned(
+                    top: 15,
+                    right: 20,
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      child: FloatingActionButton(
+                        heroTag: "menu_button",
+                        onPressed: _showGameMenu,
+                        backgroundColor: Colors.black.withOpacity(0.7),
+                        child: Icon(Icons.menu, color: Colors.white, size: 24),
+                        mini: true,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-
-              // UP meter in header area (left side)
-              Positioned(
-                left: 20,
-                top: 20,
-                child: UpMeter(
-                  upgradePoints: game.upgradePoints,
-                  bulletSizeLevel: game.bulletSizeLevel,
-                  fireRateLevel: game.fireRateLevel,
-                  allyLevel: game.allyLevel,
-                  onUpgradeTap: (tier) {
-                    game.applyUpgrade(tier);
-                  },
-                ),
-              ),
-
-              // Upgrade button at bottom right near thumb
-              Positioned(
-                right: 20,
-                bottom: 120,
-                child: UpgradeButton(
-                  canUpgrade: game.getHighestAvailableTier() != null,
-                  onTap: () {
-                    final tier = game.getHighestAvailableTier();
-                    if (tier != null) game.applyUpgrade(tier);
-                  },
-                ),
-              ),
-
-              // In-game message banner
-              if (_displayedMessage != null)
-                Positioned(
-                  top: 100,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: GameMessageBanner(
-                      key: ValueKey(_displayedMessage),
-                      message: _displayedMessage!,
-                      onDismissed: () {
-                        setState(() {
-                          _displayedMessage = null;
-                          game.clearMessage();
-                        });
+          
+                  // UP meter in header area (left side)
+                  Positioned(
+                    left: 20,
+                    top: 20,
+                    child: UpMeter(
+                      upgradePoints: game.upgradePoints,
+                      bulletSizeLevel: game.bulletSizeLevel,
+                      fireRateLevel: game.fireRateLevel,
+                      allyLevel: game.allyLevel,
+                      onUpgradeTap: (tier) {
+                        game.applyUpgrade(tier);
                       },
                     ),
                   ),
-                ),
-            ],
-          );
-        },
+          
+                  // Upgrade button at bottom right near thumb
+                  Positioned(
+                    right: 20,
+                    bottom: 120,
+                    child: UpgradeButton(
+                      canUpgrade: game.getHighestAvailableTier() != null,
+                      onTap: () {
+                        final tier = game.getHighestAvailableTier();
+                        if (tier != null) game.applyUpgrade(tier);
+                      },
+                    ),
+                  ),
+          
+                  // In-game message banner
+                  if (_displayedMessage != null)
+                    Positioned(
+                      top: 100,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: GameMessageBanner(
+                          key: ValueKey(_displayedMessage),
+                          message: _displayedMessage!,
+                          onDismissed: () {
+                            setState(() {
+                              _displayedMessage = null;
+                              game.clearMessage();
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
-    ),
     );
   }
 }

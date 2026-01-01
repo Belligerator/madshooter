@@ -54,7 +54,7 @@ enum BarrelType {
   }
 }
 
-class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 20.0;
   static const int maxHealth = 800;
   static final Random _random = Random();
@@ -101,10 +101,9 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     add(healthBarForeground);
 
     // Spawn at position within road bounds
-    final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - gameRef.roadWidth / 2 + size.x;
-    final rightBound = centerX + gameRef.roadWidth / 2 - size.x;
-    final headerHeight = 80.0;
+    final centerX = game.gameWidth / 2;
+    final leftBound = centerX - game.roadWidth / 2 + size.x;
+    final rightBound = centerX + game.roadWidth / 2 - size.x;
 
     // X position within road (use percentage if provided, otherwise random)
     final spawnX = spawnXPercent != null
@@ -121,7 +120,7 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     position.y += speed * dt;
 
     // Remove barrel when it goes off-screen (bottom)
-    if (position.y > gameRef.size.y + size.y) {
+    if (position.y > game.gameHeight + size.y) {
       removeFromParent();
     }
   }
@@ -154,13 +153,13 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Apply upgrade using enum data with max limits from config
     switch (type) {
       case BarrelType.bulletSize:
-        gameRef.upgradeBulletSize(type.upgradeValue);
+        game.upgradeBulletSize(type.upgradeValue);
         break;
       case BarrelType.fireRate:
-        gameRef.upgradeFireRate(type.upgradeValue);
+        game.upgradeFireRate(type.upgradeValue);
         break;
       case BarrelType.ally:
-        gameRef.addAlly();
+        game.addAlly();
         break;
       case BarrelType.upgradePoint:
         // UP barrel only drops upgrade points, no direct upgrade
@@ -185,7 +184,7 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
       final offsetY = randomRadius * sin(randomAngle);
       final spawnPos = Vector2(centerX + offsetX, centerY + offsetY);
       final up = UpgradePoint(spawnPosition: spawnPos);
-      gameRef.add(up);
+      game.add(up);
     }
   }
 }

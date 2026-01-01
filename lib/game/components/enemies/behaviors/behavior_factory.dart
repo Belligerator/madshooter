@@ -60,7 +60,7 @@ class BehaviorFactory {
       // Tier 3: Adaptive
       case 'track_player':
         return TrackPlayerBehavior(
-          reactionSpeed: (json['reaction_speed'] as num?)?.toDouble() ?? 0.5,
+          reactionSpeed: (json['reaction_speed'] as num?)?.toDouble() ?? 0.0,
           maxHorizontalSpeedMultiplier: (json['max_horizontal_speed'] as num?)?.toDouble() ?? 2.0,
         );
 

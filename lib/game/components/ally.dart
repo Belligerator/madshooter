@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'bullet.dart';
 
-class Ally extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class Ally extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   final Vector2 offsetFromPlayer; // Position relative to main player
   double _timeSinceLastShot = 0;
 
@@ -30,9 +30,9 @@ class Ally extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallb
     position = playerPosition + offsetFromPlayer;
 
     // Keep ally within road boundaries
-    final centerX = gameRef.size.x / 2 - radius;
-    final leftBoundary = centerX - gameRef.roadWidth / 2 - radius * 2;
-    final rightBoundary = centerX + gameRef.roadWidth / 2 + radius * 2;
+    final centerX = game.gameWidth / 2 - radius;
+    final leftBoundary = centerX - game.roadWidth / 2 - radius * 2;
+    final rightBoundary = centerX + game.roadWidth / 2 + radius * 2;
 
     position.x = position.x.clamp(leftBoundary, rightBoundary);
   }
@@ -44,7 +44,7 @@ class Ally extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallb
     // Handle automatic shooting (same fire rate as main player)
     _timeSinceLastShot += dt;
 
-    final currentFireInterval = gameRef.getFireInterval();
+    final currentFireInterval = game.getFireInterval();
 
     if (_timeSinceLastShot >= currentFireInterval) {
       _shoot();
@@ -62,7 +62,7 @@ class Ally extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallb
     // Create bullet with origin point
     final bullet = Bullet(origin: originPoint);
 
-    // Add bullet to the game
-    gameRef.add(bullet);
+    // Add bullet to the game world
+    game.world.add(bullet);
   }
 }

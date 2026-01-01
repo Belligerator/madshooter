@@ -8,9 +8,11 @@ import '../../shooting_game.dart';
 import '../upgrade_point.dart';
 import 'behaviors/movement_behavior.dart';
 
-abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double baseSpeed = 30.0;
   static final Random _random = Random();
+
+  final double outOfBoundsThreshold = 5.0;
 
   int maxHealth;
   int currentHealth;
@@ -55,9 +57,9 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
 
     // Spawn at position within road bounds
     // Note: CircleComponent position is top-left of bounding box, so we use diameter (radius * 2)
-    final centerX = gameRef.size.x / 2;
-    final roadLeft = centerX - gameRef.roadWidth / 2;
-    final roadRight = centerX + gameRef.roadWidth / 2;
+    final centerX = game.gameWidth / 2;
+    final roadLeft = centerX - game.roadWidth / 2;
+    final roadRight = centerX + game.roadWidth / 2;
     final diameter = radius * 2;
     final headerHeight = 80.0;
 
@@ -65,7 +67,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     double spawnX;
     if (spawnXPercent != null) {
       // Map 0-1 to road width, then clamp so enemy stays fully inside
-      spawnX = roadLeft + spawnXPercent! * (gameRef.roadWidth - diameter);
+      spawnX = roadLeft + spawnXPercent! * (game.roadWidth - diameter);
     } else {
       // Random position within valid bounds
       spawnX = roadLeft + _random.nextDouble() * (roadRight - roadLeft - diameter);
@@ -77,11 +79,11 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     // Initialize movement behavior if present
     // Behavior bounds keep enemy fully inside road (position is top-left)
     movementBehavior?.initialize(
-      screenWidth: gameRef.size.x,
-      screenHeight: gameRef.size.y,
+      screenWidth: game.gameWidth,
+      screenHeight: game.gameHeight,
       roadLeftBound: roadLeft,
       roadRightBound: roadRight - diameter,
-      getPlayerPosition: () => gameRef.player.position,
+      getPlayerPosition: () => game.player.position,
     );
   }
 
@@ -117,14 +119,15 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     }
 
 // todo clamp x within road bounds?
-    final centerX = gameRef.size.x / 2;
-    final roadLeft = centerX - gameRef.roadWidth / 2;
-    final roadRight = centerX + gameRef.roadWidth / 2;
+    final centerX = game.gameWidth / 2;
+    final roadLeft = centerX - game.roadWidth / 2;
+    final roadRight = centerX + game.roadWidth / 2;
     final diameter = radius * 2;
     position.x = position.x.clamp(roadLeft, roadRight - diameter);
 
     // Remove enemy when it goes off-screen
-    if (position.y > gameRef.size.y + radius) {
+    // When it crosses the bottom threshold, also count as escape
+    if (position.y > game.gameHeight - outOfBoundsThreshold) {
       removeFromParent();
     }
   }
@@ -161,13 +164,13 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   // Called when enemy escapes (reaches bottom)
   void onEscaped() {
     // Deal damage equal to max health
-    gameRef.takeDamage(maxHealth);
+    game.takeDamage(maxHealth);
   }
 
   // Called when enemy is destroyed - can be overridden
   void onDestroyed() {
     // Notify game about kill
-    gameRef.onSoldierKilled();
+    game.onSoldierKilled();
 
     // Spawn upgrade points if configured
     _spawnUpgradePoints();
@@ -187,14 +190,14 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
       final offsetY = randomRadius * sin(randomAngle);
       final spawnPos = Vector2(centerX + offsetX, centerY + offsetY);
       final up = UpgradePoint(spawnPosition: spawnPos);
-      gameRef.add(up);
+      game.add(up);
     }
   }
 
   // Called when player collides with enemy
   void onPlayerCollision() {
     // Deal fixed damage to player
-    gameRef.takeDamage(1);
+    game.takeDamage(1);
 
     // Destroy enemy if configured (default true, false for bosses)
     if (destroyedOnPlayerCollision) {

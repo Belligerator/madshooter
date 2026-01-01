@@ -5,7 +5,7 @@ import '../shooting_game.dart';
 import 'enemies/base_enemy.dart';
 import 'barrel.dart';
 
-class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class Bullet extends RectangleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 300.0;
   final Vector2 origin;
 
@@ -16,7 +16,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     super.onLoad();
 
     // Get bullet size from game (with upgrades applied)
-    final bulletSize = gameRef.getBulletSize();
+    final bulletSize = game.getBulletSize();
     size = Vector2(bulletSize.x, bulletSize.y);
     paint = Paint()..color = Colors.yellow;
 
@@ -50,7 +50,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Check if bullet collided with any enemy
     if (other is BaseEnemy) {
       // Damage the enemy
-      other.takeDamage(gameRef.getBulletDamage());
+      other.takeDamage(game.getBulletDamage());
 
       // Remove bullet
       removeFromParent();
@@ -60,7 +60,7 @@ class Bullet extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     // Check if bullet collided with a barrel
     if (other is Barrel) {
       // Damage the barrel
-      other.takeDamage(gameRef.getBulletDamage());
+      other.takeDamage(game.getBulletDamage());
 
       // Remove the bullet
       removeFromParent();

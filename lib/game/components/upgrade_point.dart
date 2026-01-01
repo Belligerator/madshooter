@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../shooting_game.dart';
 
-class UpgradePoint extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class UpgradePoint extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 30.0;
   static const double pointRadius = 8.0;
 
@@ -30,13 +30,13 @@ class UpgradePoint extends CircleComponent with HasGameRef<ShootingGame>, Collis
 
     position.y += speed * dt;
 
-    if (position.y > gameRef.size.y + radius) {
+    if (position.y > game.gameHeight + radius) {
       removeFromParent();
     }
   }
 
   void collect() {
-    gameRef.addUpgradePoint();
+    game.addUpgradePoint();
     removeFromParent();
   }
 }

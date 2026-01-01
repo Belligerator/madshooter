@@ -1,5 +1,7 @@
 import 'package:flame/game.dart';
 import 'package:flame/events.dart';
+import 'package:flame/components.dart';
+import 'package:flame/camera.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
@@ -13,9 +15,9 @@ import 'levels/level_state.dart';
 
 // Tiered upgrade system - Operation Spacehog style
 enum UpgradeTier {
-  bulletSize,  // Tier 1: 1 UP
-  fireRate,    // Tier 2: 2 UP
-  ally,        // Tier 3: 3+ UP
+  bulletSize, // Tier 1: 1 UP
+  fireRate, // Tier 2: 2 UP
+  ally, // Tier 3: 3+ UP
 }
 
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
@@ -28,7 +30,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // UI Layout constants
   static const double headerHeight = 80.0;
   final double roadWidth = 200.0; // Instance variable instead of static
-  double safeAreaTop; // Changed to mutable for dynamic updates
 
   // Game state
   bool isPaused = false;
@@ -58,13 +59,33 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   String? currentMessage;
 
   // Constructor to accept safe area padding
-  ShootingGame({this.safeAreaTop = 0.0});
+  ShootingGame();
+
+  // Game area dimensions (excluding header)
+  double get gameWidth => size.x;
+  double get gameHeight => size.y - headerHeight / 2;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Add road background
+    // Set up world and camera
+    final worldComponent = World();
+    final cameraComponent = CameraComponent(world: worldComponent);
+
+    // Use fixed size viewport positioned below header
+    cameraComponent.viewport = FixedSizeViewport(gameWidth, gameHeight);
+    cameraComponent.viewport.position = Vector2(0, headerHeight);
+
+    // Viewfinder looks at center of game world
+    cameraComponent.viewfinder.position = Vector2(0, 0);
+    cameraComponent.viewfinder.anchor = Anchor.topLeft;
+
+    await addAll([cameraComponent, worldComponent]);
+    camera = cameraComponent;
+    world = worldComponent;
+
+    // Add all game components to world
     road = Road();
     add(road);
 
@@ -101,15 +122,15 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     // Update level manager
     levelManager.update(dt);
-
     // Clean up dead enemies from our tracking list
     _enemies.removeWhere((enemy) {
+
       if (enemy.isRemoved) {
         return true; // Remove from tracking list
       }
 
       // Check if enemy escaped (reached bottom)
-      if (enemy.position.y > size.y) {
+      if (enemy.position.y > gameHeight - enemy.outOfBoundsThreshold) {
         return true; // Just remove, no damage (damage only on collision now)
       }
 
@@ -344,10 +365,10 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   }
 
   // Helper method to get the game area height (excluding header and safe areas)
-  double get gameAreaHeight => size.y - headerHeight - safeAreaTop;
+  double get gameAreaHeight => size.y - headerHeight;
 
   // Helper method to get the game area start position (including safe area)
-  double get gameAreaTop => headerHeight + safeAreaTop;
+  double get gameAreaTop => headerHeight;
 
   // Level status getters for UI
   bool get isLevelActive => levelManager.levelState == LevelState.running;

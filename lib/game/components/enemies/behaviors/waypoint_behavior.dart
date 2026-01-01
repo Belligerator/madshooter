@@ -12,7 +12,7 @@ class WaypointBehavior extends MovementBehavior {
   final double speedMultiplier;
 
   /// Distance threshold to consider a waypoint reached
-  final double waypointThreshold;
+  final double _waypointThreshold = 1.0;
 
   /// Whether to continue falling straight down after completing waypoints
   final bool continueOnComplete;
@@ -23,12 +23,8 @@ class WaypointBehavior extends MovementBehavior {
   /// Whether all waypoints have been visited
   bool _isComplete = false;
 
-  WaypointBehavior({
-    required this.waypoints,
-    this.speedMultiplier = 1.0,
-    this.waypointThreshold = 5.0,
-    this.continueOnComplete = true,
-  }) : assert(waypoints.isNotEmpty);
+  WaypointBehavior({required this.waypoints, this.speedMultiplier = 1.0, this.continueOnComplete = true})
+    : assert(waypoints.isNotEmpty);
 
   @override
   Vector2 getVelocity(Vector2 currentPosition, double dt, double baseSpeed) {
@@ -48,7 +44,7 @@ class WaypointBehavior extends MovementBehavior {
     final distance = direction.length;
 
     // Check if we've reached the waypoint
-    if (distance < waypointThreshold) {
+    if (distance < _waypointThreshold) {
       _currentWaypointIndex++;
 
       // Check if we've completed all waypoints

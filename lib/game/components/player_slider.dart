@@ -3,16 +3,16 @@ import 'package:flame/events.dart';
 
 import '../shooting_game.dart';
 
-class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, DragCallbacks {
+class PlayerSlider extends PositionComponent with HasGameReference<ShootingGame>, DragCallbacks {
   bool isDragging = false;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Control area covers full screen for free movement
+    // Control area covers full game world for free movement
     position = Vector2(0, 0);
-    size = Vector2(gameRef.size.x, gameRef.size.y);
+    size = Vector2(game.gameWidth, game.gameHeight);
 
     // Set high priority to capture touch events
     priority = 500;
@@ -32,7 +32,7 @@ class PlayerSlider extends PositionComponent with HasGameRef<ShootingGame>, Drag
     if (!isDragging) return false;
 
     // Move player by same delta as thumb (1:1 relative movement)
-    gameRef.player.moveByDelta(event.localDelta.x, event.localDelta.y);
+    game.player.moveByDelta(event.localDelta.x, event.localDelta.y);
     return true;
   }
 

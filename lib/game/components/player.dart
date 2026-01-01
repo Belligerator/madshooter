@@ -6,15 +6,15 @@ import 'bullet.dart';
 import 'upgrade_point.dart';
 import 'enemies/base_enemy.dart';
 
-class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class Player extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
   static const double playerRadius = 12.0;
   static const double playerBottomPositionY = 100.0;
 
-  late double leftBoundary;
-  late double rightBoundary;
-  late double topBoundary;
-  late double bottomBoundary;
+  late double leftBoundary = 0;
+  late double rightBoundary = game.gameWidth - 2 * playerRadius;
+  late double topBoundary = 0;
+  late double bottomBoundary = game.gameHeight - 2 * playerRadius;
 
   double _timeSinceLastShot = 0;
 
@@ -32,15 +32,9 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Add collision detection
     add(CircleHitbox());
 
-    // Set full-screen boundaries
-    leftBoundary = radius;
-    rightBoundary = gameRef.size.x - radius;
-    topBoundary = radius;
-    bottomBoundary = gameRef.size.y - radius;
-
-    // Position at bottom center of screen
-    final centerX = gameRef.size.x / 2 - radius;
-    position = Vector2(centerX, gameRef.size.y - playerBottomPositionY - radius);
+    // Position at bottom center of game world
+    final centerX = game.gameWidth / 2 - radius;
+    position = Vector2(centerX, game.gameHeight - playerBottomPositionY - radius);
   }
 
   void move(double joystickX, double joystickY) {
@@ -87,7 +81,7 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Handle automatic shooting with upgraded fire rate
     _timeSinceLastShot += dt;
 
-    final currentFireInterval = gameRef.getFireInterval(); // Get seconds between shots
+    final currentFireInterval = game.getFireInterval(); // Get seconds between shots
 
     if (_timeSinceLastShot >= currentFireInterval) {
       _shoot();
@@ -105,8 +99,8 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Create bullet with origin point
     final bullet = Bullet(origin: originPoint);
 
-    // Add bullet to the game
-    gameRef.add(bullet);
+    // Add bullet to the game world
+    game.world.add(bullet);
   }
 
   @override

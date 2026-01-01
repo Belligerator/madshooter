@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../shooting_game.dart';
 
-class Soldier extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
+class Soldier extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 120.0; // Soldier movement speed, a little faster than road scroll
   static final Random _random = Random();
 
@@ -26,7 +26,7 @@ class Soldier extends CircleComponent with HasGameRef<ShootingGame>, CollisionCa
 
     // Spawn at random position within road bounds at top of game area (below header)
     final roadWidth = 200.0;
-    final centerX = gameRef.size.x / 2;
+    final centerX = game.gameWidth / 2;
     final leftBound = centerX - roadWidth / 2 + radius * 2; // Account for radius
     final rightBound = centerX + roadWidth / 2 - radius * 2; // Account for radius
 
@@ -43,7 +43,7 @@ class Soldier extends CircleComponent with HasGameRef<ShootingGame>, CollisionCa
     position.y += speed * dt;
 
     // Remove soldier when it goes off-screen (bottom)
-    if (position.y > gameRef.size.y + radius) { // Account for radius
+    if (position.y > game.gameHeight + radius) { // Account for radius
       removeFromParent();
     }
   }
