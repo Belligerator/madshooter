@@ -27,3 +27,4 @@ flutter:
   # Add assets section for level files
   assets:
     - assets/levels/
+    - assets/images/parallax/

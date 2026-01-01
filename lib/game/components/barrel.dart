@@ -100,12 +100,11 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
     );
     add(healthBarForeground);
 
-    // Spawn at position within road bounds
-    final centerX = game.gameWidth / 2;
-    final leftBound = centerX - game.roadWidth / 2 + size.x;
-    final rightBound = centerX + game.roadWidth / 2 - size.x;
+    // Spawn at position within full screen bounds
+    final leftBound = size.x;
+    final rightBound = game.gameWidth - size.x;
 
-    // X position within road (use percentage if provided, otherwise random)
+    // X position within screen (use percentage if provided, otherwise random)
     final spawnX = spawnXPercent != null
         ? leftBound + spawnXPercent! * (rightBound - leftBound)
         : leftBound + _random.nextDouble() * (rightBound - leftBound);
@@ -185,7 +184,7 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
       final offsetY = randomRadius * sin(randomAngle);
       final spawnPos = Vector2(centerX + offsetX, centerY + offsetY);
       final up = UpgradePoint(spawnPosition: spawnPos);
-      game.add(up);
+      game.world.add(up);
     }
   }
 }

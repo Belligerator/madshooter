@@ -5,7 +5,7 @@ import 'package:flame/camera.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
-import 'components/road.dart';
+import 'components/space_background.dart';
 import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
 import 'components/header.dart';
@@ -22,14 +22,13 @@ enum UpgradeTier {
 
 class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
-  late Road road;
+  late SpaceBackground spaceBackground;
   late PlayerSlider playerSlider;
   late Header header;
   late LevelManager levelManager;
 
   // UI Layout constants
   static const double headerHeight = 80.0;
-  final double roadWidth = 200.0; // Instance variable instead of static
 
   // Game state
   bool isPaused = false;
@@ -86,11 +85,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     world = worldComponent;
 
     // Add all game components to world
-    road = Road();
+    spaceBackground = SpaceBackground();
     player = Player();
     playerSlider = PlayerSlider();
 
-    worldComponent.add(road);
+    worldComponent.add(spaceBackground);
     worldComponent.add(player);
     worldComponent.add(playerSlider);
 

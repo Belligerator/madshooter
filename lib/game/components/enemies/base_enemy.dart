@@ -19,6 +19,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingG
   Color enemyColor;
   double enemyRadius;
   double? spawnXPercent; // Optional: 0.0-1.0 percentage of road width
+  double spawnYOffset; // Optional: Offset for Y spawn position (negative moves up)
   int dropUpgradePoints; // Number of UP to drop when destroyed
   bool destroyedOnPlayerCollision; // Can enemy be destroyed on collision (false for bosses)
   MovementBehavior? movementBehavior; // Optional choreography movement
@@ -31,6 +32,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingG
     required this.enemyColor,
     required this.enemyRadius,
     this.spawnXPercent,
+    this.spawnYOffset = 0.0,
     this.dropUpgradePoints = 0,
     this.destroyedOnPlayerCollision = true,
     this.movementBehavior,
@@ -55,34 +57,34 @@ abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingG
       _createHealthBar();
     }
 
-    // Spawn at position within road bounds
+    // Spawn at position within full screen bounds
     // Note: CircleComponent position is top-left of bounding box, so we use diameter (radius * 2)
-    final centerX = game.gameWidth / 2;
-    final roadLeft = centerX - game.roadWidth / 2;
-    final roadRight = centerX + game.roadWidth / 2;
+    final screenLeft = 0.0;
+    final screenRight = game.gameWidth;
     final diameter = radius * 2;
 
     // Calculate spawn X
     double spawnX;
     if (spawnXPercent != null) {
-      // Map 0-1 to road width, then clamp so enemy stays fully inside
-      spawnX = roadLeft + spawnXPercent! * (game.roadWidth - diameter);
+      // Map 0-1 to screen width, then clamp so enemy stays fully inside
+      spawnX = screenLeft + spawnXPercent! * (game.gameWidth - diameter);
     } else {
       // Random position within valid bounds
-      spawnX = roadLeft + _random.nextDouble() * (roadRight - roadLeft - diameter);
+      spawnX = screenLeft + _random.nextDouble() * (screenRight - screenLeft - diameter);
     }
 
-    spawnX = spawnX.clamp(roadLeft, roadRight - diameter);
+    spawnX = spawnX.clamp(screenLeft, screenRight - diameter);
     // Spawn at top of game world (Y=0 is now below header in world coordinates)
-    position = Vector2(spawnX, -diameter);
+    // Apply optional Y offset (negative values move further up/off-screen)
+    position = Vector2(spawnX, -diameter + spawnYOffset);
 
     // Initialize movement behavior if present
-    // Behavior bounds keep enemy fully inside road (position is top-left)
+    // Behavior bounds keep enemy fully inside screen (position is top-left)
     movementBehavior?.initialize(
       screenWidth: game.gameWidth,
       screenHeight: game.gameHeight,
-      roadLeftBound: roadLeft,
-      roadRightBound: roadRight - diameter,
+      roadLeftBound: 0.0,
+      roadRightBound: game.gameWidth - diameter,
       getPlayerPosition: () => game.player.position,
     );
   }
@@ -118,12 +120,9 @@ abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingG
       position.y += getSpeed() * dt;
     }
 
-// todo clamp x within road bounds?
-    final centerX = game.gameWidth / 2;
-    final roadLeft = centerX - game.roadWidth / 2;
-    final roadRight = centerX + game.roadWidth / 2;
+    // Clamp x within screen bounds
     final diameter = radius * 2;
-    position.x = position.x.clamp(roadLeft, roadRight - diameter);
+    position.x = position.x.clamp(0.0, game.gameWidth - diameter);
 
     // Remove enemy when it goes off-screen
     // When it crosses the bottom threshold, also count as escape
@@ -190,7 +189,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameReference<ShootingG
       final offsetY = randomRadius * sin(randomAngle);
       final spawnPos = Vector2(centerX + offsetX, centerY + offsetY);
       final up = UpgradePoint(spawnPosition: spawnPos);
-      game.add(up);
+      game.world.add(up);
     }
   }
 

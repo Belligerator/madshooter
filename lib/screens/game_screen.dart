@@ -30,11 +30,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _gameInitialized = false;
   bool _endGameDialogShown = false;
   String? _displayedMessage;
+  late Future<void> _initFuture;
 
   @override
   void initState() {
     super.initState();
     _initializeGame();
+    _initFuture = _initializeGameMode();
     WidgetsBinding.instance.addObserver(this);
 
     // Start UI update timer for level progress
@@ -52,9 +54,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         // Check for level end
         if (!_endGameDialogShown) {
           if (game.isLevelCompleted) {
+            print('GameScreen: Level Completed detected. Showing dialog.');
             _endGameDialogShown = true;
             _showLevelCompleteDialog();
           } else if (game.isLevelFailed) {
+            print('GameScreen: Level Failed detected. Showing dialog.');
             _endGameDialogShown = true;
             _showLevelFailedDialog();
           }
@@ -102,11 +106,17 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_gameInitialized) return;
 
     _gameInitialized = true;
+    print('Initializing game mode for level ${widget.levelId}...');
 
-    // Wait a frame to ensure game is fully loaded
-    await Future.delayed(Duration(milliseconds: 100));
+    // Wait a bit to ensure game is fully loaded and attached
+    await Future.delayed(Duration(milliseconds: 500));
 
-    await game.loadAndStartLevel(widget.levelId);
+    try {
+      await game.loadAndStartLevel(widget.levelId);
+      print('Level loaded and started.');
+    } catch (e) {
+      print('Error starting level: $e');
+    }
   }
 
   void _pauseGame() {
@@ -287,9 +297,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _gameInitialized = false;
       _endGameDialogShown = false;
       _initializeGame();
-    });
-    Future.delayed(Duration(milliseconds: 100), () {
-      _initializeGameMode();
+      _initFuture = _initializeGameMode();
     });
   }
 
@@ -310,7 +318,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         ),
         body: SafeArea(
           child: FutureBuilder(
-            future: _initializeGameMode(),
+            future: _initFuture,
             builder: (context, snapshot) {
               return Stack(
                 children: [

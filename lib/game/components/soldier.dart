@@ -24,13 +24,11 @@ class Soldier extends CircleComponent with HasGameReference<ShootingGame>, Colli
     // Add collision detection for circle
     add(CircleHitbox());
 
-    // Spawn at random position within road bounds at top of game area (below header)
-    final roadWidth = 200.0;
-    final centerX = game.gameWidth / 2;
-    final leftBound = centerX - roadWidth / 2 + radius * 2; // Account for radius
-    final rightBound = centerX + roadWidth / 2 - radius * 2; // Account for radius
+    // Spawn at random position across full screen width at top of game area (below header)
+    final leftBound = radius * 2; // Account for radius
+    final rightBound = game.gameWidth - radius * 2; // Account for radius
 
-    // Random X position within road
+    // Random X position within screen
     final randomX = leftBound + _random.nextDouble() * (rightBound - leftBound);
     position = Vector2(randomX, -radius * 2); // Start just above screen, account for radius
   }

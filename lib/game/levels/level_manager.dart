@@ -1,6 +1,7 @@
 // lib/game/levels/level_manager.dart
 
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import '../shooting_game.dart';
 import '../components/enemies/basic_soldier.dart';
@@ -110,16 +111,25 @@ class LevelManager {
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
     final dropUp = params['drop_up'] as int? ?? 0;
+    final random = Random();
 
     for (int i = 0; i < count; i++) {
       // Create NEW movement behavior for each enemy (behaviors have internal state)
       final movementBehavior = BehaviorFactory.fromJson(params);
+
+      // Calculate random Y offset for spread pattern
+      // Randomize between 0 and -50 pixels (further up off-screen) to spread them out vertically
+      double yOffset = 0.0;
+      if (spawnPattern == 'spread') {
+        yOffset = -random.nextDouble() * 100.0;
+      }
 
       totalEnemiesSpawned++; // Track total enemies for star calculation
       switch (enemyType) {
         case 'basic_soldier':
           final enemy = BasicSoldier(
             spawnXPercent: spawnX,
+            spawnYOffset: yOffset,
             dropUpgradePoints: dropUp,
             movementBehavior: movementBehavior,
           );
@@ -128,6 +138,7 @@ class LevelManager {
         case 'heavy_soldier':
           final enemy = HeavySoldier(
             spawnXPercent: spawnX,
+            spawnYOffset: yOffset,
             dropUpgradePoints: dropUp,
             movementBehavior: movementBehavior,
           );
@@ -186,8 +197,7 @@ class LevelManager {
     final conditions = currentLevel!.victoryConditions;
 
     // Check failure first - too much damage taken
-    if (conditions.maxDamageTaken != null &&
-        levelDamage > conditions.maxDamageTaken!) {
+    if (conditions.maxDamageTaken != null && levelDamage > conditions.maxDamageTaken!) {
       _completeLevelFailure();
       return;
     }
@@ -243,7 +253,9 @@ class LevelManager {
     // Update UI to reflect starting conditions
     gameRef.updateUpgradeLabels();
 
-    print('Applied starting conditions: Size ${startingConditions.bulletSizeMultiplier}x, Rate +${startingConditions.additionalFireRate}/s, Allies ${startingConditions.allyCount}');
+    print(
+      'Applied starting conditions: Size ${startingConditions.bulletSizeMultiplier}x, Rate +${startingConditions.additionalFireRate}/s, Allies ${startingConditions.allyCount}',
+    );
   }
 
   // Called by game when enemy is killed
@@ -291,7 +303,5 @@ class LevelManager {
     return stars;
   }
 
-  double get killPercentage => totalEnemiesSpawned > 0
-      ? (levelKills / totalEnemiesSpawned) * 100
-      : 0;
+  double get killPercentage => totalEnemiesSpawned > 0 ? (levelKills / totalEnemiesSpawned) * 100 : 0;
 }

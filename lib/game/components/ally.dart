@@ -29,10 +29,9 @@ class Ally extends CircleComponent with HasGameReference<ShootingGame>, Collisio
     // Position ally relative to main player
     position = playerPosition + offsetFromPlayer;
 
-    // Keep ally within road boundaries
-    final centerX = game.gameWidth / 2 - radius;
-    final leftBoundary = centerX - game.roadWidth / 2 - radius * 2;
-    final rightBoundary = centerX + game.roadWidth / 2 + radius * 2;
+    // Keep ally within screen boundaries
+    final leftBoundary = radius;
+    final rightBoundary = game.gameWidth - radius;
 
     position.x = position.x.clamp(leftBoundary, rightBoundary);
   }

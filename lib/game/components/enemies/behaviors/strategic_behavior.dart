@@ -31,6 +31,9 @@ class StrategicBehavior extends MovementBehavior {
   /// For orbit: angular speed (radians per second)
   final double orbitSpeed;
 
+  /// Reaction time for flank behavior (seconds)
+  final double reactionTime;
+
   /// Whether to continue normal movement after reaching target Y
   final bool continueOnComplete;
 
@@ -39,6 +42,12 @@ class StrategicBehavior extends MovementBehavior {
 
   /// Elapsed time for orbit calculation
   double _elapsedTime = 0;
+
+  /// Timer for reaction
+  double _timeSinceLastReaction = 0;
+
+  /// Current target X for flank
+  double? _targetFlankX;
 
   /// Center X for orbit
   double? _orbitCenterX;
@@ -53,6 +62,7 @@ class StrategicBehavior extends MovementBehavior {
     this.continueOnComplete = true,
     this.orbitRadius = 50.0,
     this.orbitSpeed = 1.0,
+    this.reactionTime = 1,
   });
 
   @override
@@ -94,28 +104,51 @@ class StrategicBehavior extends MovementBehavior {
 
   Vector2 _flankBehavior(Vector2 currentPosition, double dt, double baseSpeed) {
     double horizontalVelocity = 0;
+    
+    _timeSinceLastReaction += dt;
 
     if (getPlayerPosition != null) {
-      final playerPos = getPlayerPosition!();
-      final roadCenter = (roadLeftBound + roadRightBound) / 2;
-
-      // Target the opposite side of the road from the player
-      double targetX;
-      if (playerPos.x < roadCenter) {
-        targetX = roadRightBound - 20; // Go right
-      } else {
-        targetX = roadLeftBound + 20; // Go left
+      // Initialize target if null
+      if (_targetFlankX == null) {
+         _updateFlankTarget();
+      }
+      
+      // Update target only after reaction time
+      if (_timeSinceLastReaction >= reactionTime) {
+        _updateFlankTarget();
+        _timeSinceLastReaction = 0;
       }
 
-      final dx = targetX - currentPosition.x;
-      horizontalVelocity = dx.clamp(-baseSpeed * 2, baseSpeed * 2);
+      // Move towards the stored target
+      if (_targetFlankX != null) {
+          final dx = _targetFlankX! - currentPosition.x;
+          horizontalVelocity = dx.clamp(-baseSpeed * 1.5, baseSpeed * 1.5);
+      }
     }
 
-    // Maintain Y position
+    // Maintain Y position or drift down
+    final verticalDrift = continueOnComplete ? baseSpeed : 0.0;
+    
+    if (continueOnComplete) {
+       return Vector2(horizontalVelocity, verticalDrift);
+    }
+
     final targetYScreen = targetY * screenHeight;
     final dy = (targetYScreen - currentPosition.y) * 2;
 
     return Vector2(horizontalVelocity, dy);
+  }
+
+  void _updateFlankTarget() {
+      final playerPos = getPlayerPosition!();
+      final roadCenter = (roadLeftBound + roadRightBound) / 2;
+
+      // Target the opposite side of the road from the player
+      if (playerPos.x < roadCenter) {
+        _targetFlankX = roadRightBound - 20; // Go right
+      } else {
+        _targetFlankX = roadLeftBound + 20; // Go left
+      }
   }
 
   Vector2 _orbitBehavior(Vector2 currentPosition, double dt, double baseSpeed) {
@@ -165,6 +198,8 @@ class StrategicBehavior extends MovementBehavior {
   void reset() {
     _atTargetY = false;
     _elapsedTime = 0;
+    _timeSinceLastReaction = 0;
+    _targetFlankX = null;
     _orbitCenterX = null;
     _orbitCenterY = null;
   }
