@@ -15,17 +15,17 @@ class Road extends Component with HasGameRef<ShootingGame> {
     roadSegments = [];
     centerDashes = [];
 
-    // Create one large road that covers the entire screen
+    // Create one large road that covers the entire game world
     final screenHeight = gameRef.size.y;
     final headerHeight = 80.0;
     final gameAreaHeight = screenHeight - headerHeight;
 
-    // Single road segment covering entire game area
+    // Single road segment covering entire game area (starting at world Y=0)
     final roadSegment = RectangleComponent(
       size: Vector2(gameRef.roadWidth, gameAreaHeight),
       position: Vector2(
           gameRef.size.x / 2 - gameRef.roadWidth / 2,
-          headerHeight
+          0  // World coordinates start at Y=0 (below header)
       ),
       paint: Paint()..color = Colors.grey[800]!,
     );
@@ -40,7 +40,7 @@ class Road extends Component with HasGameRef<ShootingGame> {
     final numberOfDashes = (gameAreaHeight / (dashHeight + dashGap)).ceil();
 
     for (int i = 0; i < numberOfDashes; i++) {
-      final dashY = headerHeight + (i * (dashHeight + dashGap));
+      final dashY = i * (dashHeight + dashGap);  // Start from world Y=0
 
       final dash = RectangleComponent(
         size: Vector2(dashWidth, dashHeight),

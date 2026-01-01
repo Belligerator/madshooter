@@ -32,15 +32,15 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Add collision detection
     add(CircleHitbox());
 
-    // Set full-screen boundaries
+    // Set boundaries in world coordinates (game Y=0 is now at screen Y=80)
     leftBoundary = radius;
     rightBoundary = gameRef.size.x - radius;
     topBoundary = radius;
-    bottomBoundary = gameRef.size.y - radius;
+    bottomBoundary = gameRef.size.y - ShootingGame.headerHeight - radius;
 
-    // Position at bottom center of screen
+    // Position at bottom center of game world
     final centerX = gameRef.size.x / 2 - radius;
-    position = Vector2(centerX, gameRef.size.y - playerBottomPositionY - radius);
+    position = Vector2(centerX, gameRef.size.y - ShootingGame.headerHeight - playerBottomPositionY - radius);
   }
 
   void move(double joystickX, double joystickY) {
@@ -105,8 +105,8 @@ class Player extends CircleComponent with HasGameRef<ShootingGame>, CollisionCal
     // Create bullet with origin point
     final bullet = Bullet(origin: originPoint);
 
-    // Add bullet to the game
-    gameRef.add(bullet);
+    // Add bullet to the game world
+    gameRef.world.add(bullet);
   }
 
   @override

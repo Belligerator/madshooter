@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flame/events.dart';
+import 'package:flame/components.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
@@ -64,19 +65,31 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Add road background
+    // Set up camera with viewport positioned below header
+    final worldComponent = World();
+    final cameraComponent = CameraComponent.withFixedResolution(
+      world: worldComponent,
+      width: size.x,
+      height: size.y - headerHeight,
+    );
+    cameraComponent.viewport.position = Vector2(0, headerHeight);
+    cameraComponent.viewfinder.position = Vector2(size.x / 2, (size.y - headerHeight) / 2);
+    cameraComponent.viewfinder.anchor = Anchor.center;
+
+    await addAll([cameraComponent, worldComponent]);
+    camera = cameraComponent;
+    world = worldComponent;
+
+    // Add all game components to world
     road = Road();
-    add(road);
-
-    // Add player
     player = Player();
-    add(player);
-
-    // Add player slider for movement control
     playerSlider = PlayerSlider();
-    add(playerSlider);
 
-    // Add header component (will render on top due to high priority)
+    worldComponent.add(road);
+    worldComponent.add(player);
+    worldComponent.add(playerSlider);
+
+    // Add header directly to game (screen space, not world space)
     header = Header();
     add(header);
 
@@ -120,7 +133,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Public method to spawn enemy and track it
   void spawnEnemy(BaseEnemy enemy) {
     _enemies.add(enemy);
-    add(enemy);
+    world.add(enemy);
   }
 
   // Called when a soldier is killed by bullet collision
@@ -245,7 +258,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     final ally = Ally(offsetFromPlayer: allyOffset);
     allies.add(ally);
-    add(ally);
+    world.add(ally);
 
     updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied

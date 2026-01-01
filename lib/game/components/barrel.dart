@@ -104,13 +104,13 @@ class Barrel extends RectangleComponent with HasGameRef<ShootingGame>, Collision
     final centerX = gameRef.size.x / 2;
     final leftBound = centerX - gameRef.roadWidth / 2 + size.x;
     final rightBound = centerX + gameRef.roadWidth / 2 - size.x;
-    final headerHeight = 80.0;
 
     // X position within road (use percentage if provided, otherwise random)
     final spawnX = spawnXPercent != null
         ? leftBound + spawnXPercent! * (rightBound - leftBound)
         : leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(spawnX, headerHeight - size.y);
+    // Spawn at top of game world (Y=0 is now below header in world coordinates)
+    position = Vector2(spawnX, -size.y);
   }
 
   @override

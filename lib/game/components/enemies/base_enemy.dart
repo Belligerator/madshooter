@@ -59,7 +59,6 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     final roadLeft = centerX - gameRef.roadWidth / 2;
     final roadRight = centerX + gameRef.roadWidth / 2;
     final diameter = radius * 2;
-    final headerHeight = 80.0;
 
     // Calculate spawn X
     double spawnX;
@@ -70,9 +69,10 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
       // Random position within valid bounds
       spawnX = roadLeft + _random.nextDouble() * (roadRight - roadLeft - diameter);
     }
-    
+
     spawnX = spawnX.clamp(roadLeft, roadRight - diameter);
-    position = Vector2(spawnX, headerHeight - diameter);
+    // Spawn at top of game world (Y=0 is now below header in world coordinates)
+    position = Vector2(spawnX, -diameter);
 
     // Initialize movement behavior if present
     // Behavior bounds keep enemy fully inside road (position is top-left)
