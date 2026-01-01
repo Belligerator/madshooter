@@ -16,7 +16,7 @@ class Road extends Component with HasGameReference<ShootingGame> {
     // Create one large road that covers the entire game world
     final gameAreaHeight = game.gameHeight;
 
-    // Single road segment covering entire game area
+    // Single road segment covering entire game area (starting at world Y=0)
     final roadSegment = RectangleComponent(
       size: Vector2(game.roadWidth, gameAreaHeight),
       position: Vector2(

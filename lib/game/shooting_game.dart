@@ -87,17 +87,14 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     // Add all game components to world
     road = Road();
-    add(road);
-
-    // Add player
     player = Player();
-    add(player);
-
-    // Add player slider for movement control
     playerSlider = PlayerSlider();
-    add(playerSlider);
 
-    // Add header component (will render on top due to high priority)
+    worldComponent.add(road);
+    worldComponent.add(player);
+    worldComponent.add(playerSlider);
+
+    // Add header directly to game (screen space, not world space)
     header = Header();
     add(header);
 
@@ -141,7 +138,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Public method to spawn enemy and track it
   void spawnEnemy(BaseEnemy enemy) {
     _enemies.add(enemy);
-    add(enemy);
+    world.add(enemy);
   }
 
   // Called when a soldier is killed by bullet collision
@@ -266,7 +263,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     final ally = Ally(offsetFromPlayer: allyOffset);
     allies.add(ally);
-    add(ally);
+    world.add(ally);
 
     updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied

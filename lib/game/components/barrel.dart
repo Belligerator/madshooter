@@ -109,7 +109,8 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
     final spawnX = spawnXPercent != null
         ? leftBound + spawnXPercent! * (rightBound - leftBound)
         : leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(spawnX, headerHeight - size.y);
+    // Spawn at top of game world (Y=0 is now below header in world coordinates)
+    position = Vector2(spawnX, -size.y);
   }
 
   @override
