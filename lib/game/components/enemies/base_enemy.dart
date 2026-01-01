@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 
 import '../../shooting_game.dart';
 import '../upgrade_point.dart';
+import 'behaviors/movement_behavior.dart';
 
 abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, CollisionCallbacks {
-  static const double baseSpeed = 50.0;
+  static const double baseSpeed = 30.0;
   static final Random _random = Random();
 
   int maxHealth;
@@ -18,6 +19,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   double? spawnXPercent; // Optional: 0.0-1.0 percentage of road width
   int dropUpgradePoints; // Number of UP to drop when destroyed
   bool destroyedOnPlayerCollision; // Can enemy be destroyed on collision (false for bosses)
+  MovementBehavior? movementBehavior; // Optional choreography movement
 
   RectangleComponent? healthBarBackground;
   RectangleComponent? healthBarForeground;
@@ -29,6 +31,7 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     this.spawnXPercent,
     this.dropUpgradePoints = 0,
     this.destroyedOnPlayerCollision = true,
+    this.movementBehavior,
   }) : currentHealth = maxHealth;
 
   @override
@@ -51,15 +54,35 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
     }
 
     // Spawn at position within road bounds
+    // Note: CircleComponent position is top-left of bounding box, so we use diameter (radius * 2)
     final centerX = gameRef.size.x / 2;
-    final leftBound = centerX - gameRef.roadWidth / 2 + radius * 2;
-    final rightBound = centerX + gameRef.roadWidth / 2 - radius * 2;
+    final roadLeft = centerX - gameRef.roadWidth / 2;
+    final roadRight = centerX + gameRef.roadWidth / 2;
+    final diameter = radius * 2;
     final headerHeight = 80.0;
 
-    final spawnX = spawnXPercent != null
-        ? leftBound + spawnXPercent! * (rightBound - leftBound)
-        : leftBound + _random.nextDouble() * (rightBound - leftBound);
-    position = Vector2(spawnX, headerHeight - radius * 2);
+    // Calculate spawn X
+    double spawnX;
+    if (spawnXPercent != null) {
+      // Map 0-1 to road width, then clamp so enemy stays fully inside
+      spawnX = roadLeft + spawnXPercent! * (gameRef.roadWidth - diameter);
+    } else {
+      // Random position within valid bounds
+      spawnX = roadLeft + _random.nextDouble() * (roadRight - roadLeft - diameter);
+    }
+    
+    spawnX = spawnX.clamp(roadLeft, roadRight - diameter);
+    position = Vector2(spawnX, headerHeight - diameter);
+
+    // Initialize movement behavior if present
+    // Behavior bounds keep enemy fully inside road (position is top-left)
+    movementBehavior?.initialize(
+      screenWidth: gameRef.size.x,
+      screenHeight: gameRef.size.y,
+      roadLeftBound: roadLeft,
+      roadRightBound: roadRight - diameter,
+      getPlayerPosition: () => gameRef.player.position,
+    );
   }
 
   void _createHealthBar() {
@@ -84,8 +107,21 @@ abstract class BaseEnemy extends CircleComponent with HasGameRef<ShootingGame>, 
   void update(double dt) {
     super.update(dt);
 
-    // Move enemy downward
-    position.y += getSpeed() * dt;
+    // Use movement behavior if present, otherwise linear descent
+    if (movementBehavior != null) {
+      final velocity = movementBehavior!.getVelocity(position, dt, getSpeed());
+      position += velocity * dt;
+    } else {
+      // Default: move enemy downward
+      position.y += getSpeed() * dt;
+    }
+
+// todo clamp x within road bounds?
+    final centerX = gameRef.size.x / 2;
+    final roadLeft = centerX - gameRef.roadWidth / 2;
+    final roadRight = centerX + gameRef.roadWidth / 2;
+    final diameter = radius * 2;
+    position.x = position.x.clamp(roadLeft, roadRight - diameter);
 
     // Remove enemy when it goes off-screen
     if (position.y > gameRef.size.y + radius) {

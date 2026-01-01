@@ -1,8 +1,8 @@
 {
   "levelId": 2,
-  "name": "Under Pressure",
-  "duration": 60,
-  "description": "Face real combat with waves of enemies and heavy soldiers!",
+  "name": "Movement Showcase",
+  "duration": 90,
+  "description": "Experience all enemy movement patterns!",
   "starting_conditions": {
     "bullet_size_multiplier": 1.0,
     "additional_fire_rate": 0.0,
@@ -12,91 +12,203 @@
     {
       "timestamp": 1.0,
       "type": "message",
-      "message": "Prepare for battle!"
+      "message": "Tier 1: Simple Patterns"
     },
     {
       "timestamp": 3.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 3,
-      "spawn_pattern": "spread",
+      "count": 1,
+      "spawn_x": 0.3,
+      "movement": "sine",
+      "amplitude": 50,
+      "frequency": 0.5,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 4.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_x": 0.7,
+      "movement": "sine",
+      "amplitude": 40,
+      "frequency": 3.0,
       "drop_up": 1
     },
     {
       "timestamp": 8.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 2,
-      "spawn_pattern": "spread"
+      "count": 1,
+      "spawn_x": 0.2,
+      "movement": "zigzag",
+      "segment_length": 50,
+      "drop_up": 1
+    },
+    {
+      "timestamp": 9.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_x": 0.8,
+      "movement": "zigzag",
+      "segment_length": 70,
+      "drop_up": 1
     },
     {
       "timestamp": 15.0,
       "type": "spawn_barrel",
       "barrel_type": "upgrade_point",
       "spawn_x": 0.5,
-      "drop_up": 2
+      "drop_up": 3
     },
     {
-      "timestamp": 18.0,
+      "timestamp": 17.0,
       "type": "message",
-      "message": "Heavy units incoming!"
+      "message": "Tier 2: Path-Based Movement"
     },
     {
       "timestamp": 20.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "basic_soldier",
       "count": 1,
-      "spawn_pattern": "single",
-      "spawn_x": 0.5,
+      "movement": "bezier",
+      "path": [
+        [0.2, 0],
+        [0.8, 0.3],
+        [0.2, 0.6],
+        [0.5, 1.0]
+      ],
+      "duration": 6,
       "drop_up": 2
     },
     {
-      "timestamp": 24.0,
+      "timestamp": 23.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 3,
-      "spawn_pattern": "spread"
+      "count": 1,
+      "movement": "bezier",
+      "path": [
+        [0.8, 0],
+        [0.2, 0.3],
+        [0.8, 0.6],
+        [0.5, 1.0]
+      ],
+      "duration": 6,
+      "drop_up": 2
     },
     {
-      "timestamp": 28.0,
-      "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
-      "count": 2,
-      "spawn_pattern": "spread",
-      "drop_up": 1
-    },
-    {
-      "timestamp": 35.0,
-      "type": "message",
-      "message": "Final assault!"
-    },
-    {
-      "timestamp": 37.0,
+      "timestamp": 30.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 4,
-      "spawn_pattern": "spread"
+      "count": 1,
+      "movement": "waypoints",
+      "waypoints": [
+        [0.2, 0.2],
+        [0.8, 0.4],
+        [0.2, 0.6],
+        [0.5, 0.9]
+      ],
+      "drop_up": 2
+    },
+    {
+      "timestamp": 32.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "movement": "waypoints",
+      "waypoints": [
+        [0.8, 0.2],
+        [0.2, 0.4],
+        [0.8, 0.6],
+        [0.5, 0.9]
+      ],
+      "drop_up": 2
+    },
+    {
+      "timestamp": 40.0,
+      "type": "spawn_barrel",
+      "barrel_type": "upgrade_point",
+      "spawn_x": 0.5,
+      "drop_up": 3
     },
     {
       "timestamp": 42.0,
-      "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
-      "count": 2,
-      "spawn_pattern": "spread"
+      "type": "message",
+      "message": "Tier 3: Adaptive Behaviors"
     },
     {
-      "timestamp": 47.0,
+      "timestamp": 45.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "movement": "track_player",
+      "reaction_speed": 0.6,
+      "drop_up": 3
+    },
+    {
+      "timestamp": 50.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "movement": "strategic",
+      "strategy": "hover",
+      "target_y": 0.25,
+      "drop_up": 3
+    },
+    {
+      "timestamp": 58.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "movement": "strategic",
+      "strategy": "flank",
+      "target_y": 0.2,
+      "drop_up": 3
+    },
+    {
+      "timestamp": 65.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "movement": "strategic",
+      "strategy": "orbit",
+      "target_y": 0.3,
+      "orbit_radius": 40,
+      "orbit_speed": 1.5,
+      "drop_up": 3
+    },
+    {
+      "timestamp": 72.0,
+      "type": "message",
+      "message": "Final wave - mixed patterns!"
+    },
+    {
+      "timestamp": 75.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 5,
-      "spawn_pattern": "spread"
+      "count": 2,
+      "movement": "sine",
+      "amplitude": 60,
+      "frequency": 2.5
     },
     {
-      "timestamp": 52.0,
+      "timestamp": 77.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 2,
+      "movement": "zigzag",
+      "segment_length": 60
+    },
+    {
+      "timestamp": 80.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 3,
-      "spawn_pattern": "spread"
+      "count": 1,
+      "movement": "track_player",
+      "reaction_speed": 0.8,
+      "drop_up": 5
     }
   ],
   "victory_conditions": {}

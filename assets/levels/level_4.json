@@ -1,0 +1,31 @@
+{
+  "levelId": 4,
+  "name": "Movement",
+  "duration": 90,
+  "description": "Experience all enemy movement patterns!",
+  "starting_conditions": {
+    "bullet_size_multiplier": 1.0,
+    "additional_fire_rate": 0.0,
+    "ally_count": 0
+  },
+  "events": [
+    {
+      "timestamp": 5.0,
+      "type": "message",
+      "message": "Tier 1: Sine"
+    },
+
+    {
+      "timestamp": 3.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1,
+      "spawn_x": 0.3,
+      "movement": "sine",
+      "amplitude": 50,
+      "frequency": 0.5,
+      "drop_up": 1
+    }
+  ],
+  "victory_conditions": {}
+}

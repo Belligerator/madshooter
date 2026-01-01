@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'base_enemy.dart';
+import 'behaviors/movement_behavior.dart';
 
 class HeavySoldier extends BaseEnemy {
   HeavySoldier({
     double? spawnXPercent,
     int dropUpgradePoints = 0,
     bool destroyedOnPlayerCollision = true,
+    MovementBehavior? movementBehavior,
   }) : super(
     maxHealth: 500,
     enemyColor: Colors.purple,
@@ -13,6 +15,7 @@ class HeavySoldier extends BaseEnemy {
     spawnXPercent: spawnXPercent,
     dropUpgradePoints: dropUpgradePoints,
     destroyedOnPlayerCollision: destroyedOnPlayerCollision,
+    movementBehavior: movementBehavior,
   );
 
   @override

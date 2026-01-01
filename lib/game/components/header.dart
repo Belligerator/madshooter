@@ -18,7 +18,7 @@ class Header extends Component with HasGameRef<ShootingGame> {
     background = RectangleComponent(
       size: Vector2(gameRef.size.x, headerHeight),
       position: Vector2(0, 0),
-      paint: Paint()..color = Colors.black,
+      paint: Paint()..color = Colors.black.withOpacity(0.3),
     );
     add(background);
   }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../shooting_game.dart';
 import '../components/enemies/basic_soldier.dart';
 import '../components/enemies/heavy_soldier.dart';
+import '../components/enemies/behaviors/behavior_factory.dart';
 import '../components/barrel.dart';
 import 'level_data.dart';
 import 'level_event.dart';
@@ -111,14 +112,25 @@ class LevelManager {
     final dropUp = params['drop_up'] as int? ?? 0;
 
     for (int i = 0; i < count; i++) {
+      // Create NEW movement behavior for each enemy (behaviors have internal state)
+      final movementBehavior = BehaviorFactory.fromJson(params);
+
       totalEnemiesSpawned++; // Track total enemies for star calculation
       switch (enemyType) {
         case 'basic_soldier':
-          final enemy = BasicSoldier(spawnXPercent: spawnX, dropUpgradePoints: dropUp);
+          final enemy = BasicSoldier(
+            spawnXPercent: spawnX,
+            dropUpgradePoints: dropUp,
+            movementBehavior: movementBehavior,
+          );
           gameRef.spawnEnemy(enemy);
           break;
         case 'heavy_soldier':
-          final enemy = HeavySoldier(spawnXPercent: spawnX, dropUpgradePoints: dropUp);
+          final enemy = HeavySoldier(
+            spawnXPercent: spawnX,
+            dropUpgradePoints: dropUp,
+            movementBehavior: movementBehavior,
+          );
           gameRef.spawnEnemy(enemy);
           break;
       }
