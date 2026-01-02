@@ -23,6 +23,7 @@ class HeavySoldier extends BaseEnemy {
   static double get scaledHitboxHeight => _hitboxHeight * displayScale;
 
   HeavySoldier({
+    super.cachedSprite,
     super.spawnXPercent,
     super.spawnYOffset,
     super.dropUpgradePoints,
@@ -40,11 +41,13 @@ class HeavySoldier extends BaseEnemy {
 
   @override
   void addHitboxes() {
-    add(RectangleHitbox(
-      size: Vector2(scaledHitboxWidth, scaledHitboxHeight),
-      position: Vector2(_baseWidth / 2, _baseHeight / 2),
-      anchor: Anchor.center,
-    ));
+    add(
+      CircleHitbox(
+        radius: scaledHitboxWidth / 2,
+        position: Vector2(_baseWidth / 2, _baseHeight / 2),
+        anchor: Anchor.center,
+      ),
+    );
   }
 
   @override

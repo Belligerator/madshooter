@@ -66,7 +66,7 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
     priority = 200;
 
     // Add main body hitbox
-    add(RectangleHitbox(size: hitboxSize, position: hitboxPosition));
+   add(RectangleHitbox(size: hitboxSize, position: hitboxPosition));
 
     // Add nose hitbox (circle)
     add(CircleHitbox(

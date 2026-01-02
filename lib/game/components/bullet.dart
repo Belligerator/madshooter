@@ -67,9 +67,10 @@ class Bullet extends SpriteAnimationComponent with HasGameReference<ShootingGame
     // Add collision detection (centered horizontally)
     final scaledHitboxWidth = hitboxWidth * displayScale;
     add(
-      RectangleHitbox(
-        size: Vector2(scaledHitboxWidth, hitboxHeight * displayScale),
-        position: Vector2((baseWidth - scaledHitboxWidth) / 2, hitboxOffsetY * displayScale),
+      CircleHitbox(
+        radius: scaledHitboxWidth / 2,
+        position: Vector2(baseWidth / 2, hitboxOffsetY * displayScale + scaledHitboxWidth / 2),
+        anchor: Anchor.center
       ),
     );
   }

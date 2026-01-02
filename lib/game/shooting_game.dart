@@ -9,6 +9,9 @@ import 'components/ally.dart';
 import 'components/space_background.dart';
 import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
+import 'components/enemies/basic_soldier.dart';
+import 'components/enemies/heavy_soldier.dart';
+import 'components/enemies/enemy_pool.dart';
 import 'components/explosion_effect.dart';
 import 'components/header.dart';
 import 'game_config.dart';
@@ -28,6 +31,14 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   late PlayerSlider playerSlider;
   late Header header;
   late LevelManager levelManager;
+
+  // Pre-cached enemy sprites for performance
+  late Sprite basicSoldierSprite;
+  late Sprite heavySoldierSprite;
+
+  // Enemy object pools for performance
+  late EnemyPool<BasicSoldier> basicSoldierPool;
+  late EnemyPool<HeavySoldier> heavySoldierPool;
 
   // UI Layout constants
   static const double headerHeight = 80.0;
@@ -76,6 +87,10 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   Future<void> onLoad() async {
     super.onLoad();
 
+    // Pre-cache enemy sprites for performance (load once, reuse for all enemies)
+    basicSoldierSprite = await loadSprite('enemies/EnemyShip1_Base.webp');
+    heavySoldierSprite = await loadSprite('enemies/Enemy_Tank_Base.webp');
+
     // Set up world and camera
     final worldComponent = World();
     final cameraComponent = CameraComponent(world: worldComponent);
@@ -107,6 +122,18 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     // Initialize level manager
     levelManager = LevelManager(this);
+
+    // Initialize enemy pools (pre-populate with 50 enemies each)
+    basicSoldierPool = EnemyPool<BasicSoldier>(
+      () => BasicSoldier(cachedSprite: basicSoldierSprite),
+      worldComponent,
+      initialSize: 100,
+    );
+    heavySoldierPool = EnemyPool<HeavySoldier>(
+      () => HeavySoldier(cachedSprite: heavySoldierSprite),
+      worldComponent,
+      initialSize: 20,
+    );
 
     // Don't automatically load level here - let the GameScreen handle it
     // The level will be loaded via loadAndStartLevel() called from GameScreen
@@ -146,6 +173,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   void spawnEnemy(BaseEnemy enemy) {
     _enemies.add(enemy);
     world.add(enemy);
+  }
+
+  // Track enemy from pool (already added to world by pool)
+  void trackEnemy(BaseEnemy enemy) {
+    _enemies.add(enemy);
   }
 
   // Called when a soldier is killed by bullet collision

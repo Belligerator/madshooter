@@ -12,7 +12,7 @@
     {
       "timestamp": 0.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "heavy_soldier",
       "count": 1
     }
   ],

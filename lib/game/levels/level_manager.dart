@@ -5,8 +5,6 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
-import '../components/enemies/basic_soldier.dart';
-import '../components/enemies/heavy_soldier.dart';
 import '../components/enemies/behaviors/behavior_factory.dart';
 import '../components/barrel.dart';
 import 'level_data.dart';
@@ -150,22 +148,24 @@ class LevelManager {
         totalEnemiesSpawned++; // Track total enemies for star calculation
         switch (enemyType) {
           case 'basic_soldier':
-            final enemy = BasicSoldier(
+            // Use object pool for better performance
+            final enemy = gameRef.basicSoldierPool.acquire(
               spawnXPercent: spawnX,
               spawnYOffset: yOffset,
               dropUpgradePoints: dropUp,
               movementBehavior: movementBehavior,
             );
-            gameRef.spawnEnemy(enemy);
+            gameRef.trackEnemy(enemy);
             break;
           case 'heavy_soldier':
-            final enemy = HeavySoldier(
+            // Use object pool for better performance
+            final enemy = gameRef.heavySoldierPool.acquire(
               spawnXPercent: spawnX,
               spawnYOffset: yOffset,
               dropUpgradePoints: dropUp,
               movementBehavior: movementBehavior,
             );
-            gameRef.spawnEnemy(enemy);
+            gameRef.trackEnemy(enemy);
             break;
         }
         

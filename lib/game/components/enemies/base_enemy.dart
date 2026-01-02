@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../shooting_game.dart';
@@ -13,6 +12,12 @@ import 'behaviors/movement_behavior.dart';
 abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double baseSpeed = 30.0;
   static final Random _random = Random();
+
+  // Cached Paint objects for health bars (avoid allocations)
+  static final Paint _greenPaint = Paint()..color = Colors.green;
+  static final Paint _yellowPaint = Paint()..color = Colors.yellow;
+  static final Paint _redPaint = Paint()..color = Colors.red;
+  static final Paint _blackPaint = Paint()..color = Colors.black;
 
   final double outOfBoundsThreshold = 5.0;
 
@@ -29,11 +34,19 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
 
   // Sprite configuration (to be provided by subclasses)
   String spritePath;
+  Sprite? cachedSprite; // Pre-cached sprite for performance
   double baseWidth; // Display size in game
   double baseHeight; // Display size in game
 
-  RectangleComponent? healthBarBackground;
-  RectangleComponent? healthBarForeground;
+  // Health bar rendering constants
+  static const double _healthBarHeight = 4.0;
+  static const double _healthBarYOffset = 10.0;
+
+  // Priority optimization - only recalculate when Y changes significantly
+  double _lastPriorityY = 0;
+
+  // Callback for pool release (set by EnemyPool)
+  void Function(BaseEnemy)? onPoolRelease;
 
   BaseEnemy({
     required this.maxHealth,
@@ -43,6 +56,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     required this.spritePath,
     required this.baseWidth,
     required this.baseHeight,
+    this.cachedSprite,
     this.spawnXPercent,
     this.spawnYOffset = 0.0,
     this.dropUpgradePoints = 0,
@@ -58,8 +72,8 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     super.onLoad();
     // debugMode = true;
 
-    // Load sprite
-    sprite = await game.loadSprite(spritePath);
+    // Use pre-cached sprite if available, otherwise load (fallback)
+    sprite = cachedSprite ?? await game.loadSprite(spritePath);
     size = Vector2(baseWidth, baseHeight);
     anchor = Anchor.center;
 
@@ -69,10 +83,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     // Let subclass define hitboxes
     addHitboxes();
 
-    // Create health bar if enemy has more than 1 HP
-    if (maxHealth > 1) {
-      _createHealthBar();
-    }
+    // Health bars are now drawn directly in render() - no components needed
 
     // Spawn at position within full screen bounds
     // Note: Using center anchor, so position is center of sprite
@@ -104,25 +115,37 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     );
   }
 
-  void _createHealthBar() {
-    final barHeight = 4.0;
-    final barYOffset = 10.0;
+  // Draw health bar directly on canvas (no child components needed)
+  void _drawHealthBar(Canvas canvas) {
+    if (maxHealth <= 1) return;
 
-    // Health bar background (black)
-    healthBarBackground = RectangleComponent(
-      size: Vector2(healthBarWidth, barHeight),
-      position: Vector2(healthBarX, healthBarY - barYOffset), // Centered horizontally
-      paint: Paint()..color = Colors.black,
-    );
-    add(healthBarBackground!);
+    final healthPercent = currentHealth / maxHealth;
+    final barY = healthBarY - _healthBarYOffset;
 
-    // Health bar foreground (start with green)
-    healthBarForeground = RectangleComponent(
-      size: Vector2(healthBarWidth, barHeight),
-      position: Vector2(healthBarX, healthBarY - barYOffset),
-      paint: Paint()..color = Colors.green,
+    // Background (black)
+    canvas.drawRect(
+      Rect.fromLTWH(healthBarX, barY, healthBarWidth, _healthBarHeight),
+      _blackPaint,
     );
-    add(healthBarForeground!);
+
+    // Foreground (colored based on health)
+    final foregroundWidth = healthBarWidth * healthPercent;
+    final healthPaint = healthPercent > 0.6
+        ? _greenPaint
+        : healthPercent > 0.3
+            ? _yellowPaint
+            : _redPaint;
+
+    canvas.drawRect(
+      Rect.fromLTWH(healthBarX, barY, foregroundWidth, _healthBarHeight),
+      healthPaint,
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    _drawHealthBar(canvas);
   }
 
   @override
@@ -141,9 +164,11 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     // Clamp x within screen bounds (using center anchor)
     position.x = position.x.clamp(size.x / 2, game.gameWidth - size.x / 2);
 
-    // Update priority based on Y position (lower enemies render on top)
-    // Base priority 50, add Y position scaled to 0-100 range
-    priority = (50 + (position.y / game.gameHeight * 100).clamp(0.0, 100.0)).toInt();
+    // Update priority only when Y changes by more than 20 pixels (optimization)
+    if ((position.y - _lastPriorityY).abs() > 10) {
+      priority = (50 + (position.y / game.gameHeight * 100).clamp(0.0, 100.0)).toInt();
+      _lastPriorityY = position.y;
+    }
 
     // Remove enemy when it goes off-screen
     // When it crosses the bottom threshold, also count as escape
@@ -155,24 +180,63 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   // Can be overridden by subclasses for different speeds
   double getSpeed() => baseSpeed;
 
+  /// Activate enemy for spawning (used by object pool)
+  /// Resets runtime state and configures spawn parameters
+  void activate({
+    double? spawnXPercent,
+    double spawnYOffset = 0.0,
+    int dropUpgradePoints = 0,
+    MovementBehavior? movementBehavior,
+  }) {
+    // Update spawn parameters
+    this.spawnXPercent = spawnXPercent;
+    this.spawnYOffset = spawnYOffset;
+    this.dropUpgradePoints = dropUpgradePoints;
+    this.movementBehavior = movementBehavior;
+
+    // Reset runtime state
+    currentHealth = maxHealth;
+    _lastPriorityY = 0;
+
+    // Calculate spawn position
+    final screenRight = game.gameWidth;
+    double spawnX;
+    if (this.spawnXPercent != null) {
+      spawnX = this.spawnXPercent! * game.gameWidth;
+    } else {
+      spawnX = _random.nextDouble() * screenRight;
+    }
+    spawnX = spawnX.clamp(size.x / 2, screenRight - size.x / 2);
+    position = Vector2(spawnX, -size.y / 2 + spawnYOffset);
+
+    // Initialize movement behavior if present
+    movementBehavior?.initialize(
+      screenWidth: game.gameWidth,
+      screenHeight: game.gameHeight,
+      roadLeftBound: size.x / 2,
+      roadRightBound: game.gameWidth - size.x / 2,
+      getPlayerPosition: () => game.player.position,
+    );
+  }
+
+  /// Deactivate enemy and prepare for pool reuse
+  void deactivate() {
+    // Clear movement behavior to allow garbage collection
+    movementBehavior = null;
+  }
+
+  @override
+  void onRemove() {
+    super.onRemove();
+    // Notify pool to release this enemy for reuse
+    onPoolRelease?.call(this);
+  }
+
   // Handle taking damage
   void takeDamage(int damage) {
     currentHealth -= damage;
 
-    // Update health bar if it exists
-    if (healthBarForeground != null && maxHealth > 1) {
-      final healthPercentage = currentHealth / maxHealth;
-      healthBarForeground!.size.x = clampDouble(healthBarWidth * healthPercentage, 0, healthBarWidth);
-
-      // Change health bar color based on health
-      if (healthPercentage > 0.6) {
-        healthBarForeground!.paint = Paint()..color = Colors.green;
-      } else if (healthPercentage > 0.3) {
-        healthBarForeground!.paint = Paint()..color = Colors.yellow;
-      } else {
-        healthBarForeground!.paint = Paint()..color = Colors.red;
-      }
-    }
+    // Health bar is drawn in render() based on currentHealth - no component update needed
 
     // Remove enemy if health reaches 0
     if (currentHealth <= 0) {
