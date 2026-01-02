@@ -1,22 +1,51 @@
-import 'package:flutter/material.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 import 'base_enemy.dart';
-import 'behaviors/movement_behavior.dart';
 
 class BasicSoldier extends BaseEnemy {
+  // Original sprite dimensions (from image file)
+  static const double _originalWidth = 256.0;
+  static const double _originalHeight = 256.0;
+
+  // Base display size (what you work with in game)
+  static const double _baseWidth = 60.0;
+  static const double _baseHeight = _baseWidth * (_originalHeight / _originalWidth);
+
+  // Scale factor from original to base size
+  static double get displayScale => _baseWidth / _originalWidth;
+
+  // Hitbox dimensions (relative to original sprite)
+  static const double _hitboxWidth = 102.0;
+  static const double _hitboxHeight = 110.0;
+
+  // Scaled hitbox getters (for positioning from other components)
+  static double get scaledHitboxWidth => _hitboxWidth * displayScale;
+  static double get scaledHitboxHeight => _hitboxHeight * displayScale;
+
   BasicSoldier({
-    double? spawnXPercent,
-    double spawnYOffset = 0.0,
-    int dropUpgradePoints = 0,
-    bool destroyedOnPlayerCollision = true,
-    MovementBehavior? movementBehavior,
+    super.spawnXPercent,
+    super.spawnYOffset,
+    super.dropUpgradePoints,
+    super.destroyedOnPlayerCollision,
+    super.movementBehavior,
   }) : super(
-    maxHealth: 150,
-    enemyColor: Colors.red,
-    enemyRadius: 12.0,
-    spawnXPercent: spawnXPercent,
-    spawnYOffset: spawnYOffset,
-    dropUpgradePoints: dropUpgradePoints,
-    destroyedOnPlayerCollision: destroyedOnPlayerCollision,
-    movementBehavior: movementBehavior,
-  );
+         maxHealth: 150,
+         spritePath: 'enemies/EnemyShip1_Base.webp',
+         baseWidth: _baseWidth,
+         baseHeight: _baseHeight,
+         healthBarWidth: scaledHitboxWidth,
+         healthBarX: _baseWidth / 2 - scaledHitboxWidth / 2,
+         healthBarY: _baseHeight / 2 - scaledHitboxHeight / 2,
+       );
+
+  @override
+  void addHitboxes() {
+    add(
+      RectangleHitbox(
+        size: Vector2(scaledHitboxWidth, scaledHitboxHeight),
+        position: Vector2(_baseWidth / 2, _baseHeight / 2 - scaledHitboxHeight / 2),
+        anchor: Anchor.topCenter,
+      ),
+    );
+  }
 }

@@ -5,8 +5,6 @@ class GameConfig {
   static const double maxAllyCount = 5.0;              // Max 3 allies (including main player = 4 total)
 
   // Base values
-  static const double baseBulletWidth = 3.0;
-  static const double baseBulletHeight = 8.0;
   static const double baseFireRate = 1.0;              // Shots per second (instead of seconds between shots)
 
   // Level configuration

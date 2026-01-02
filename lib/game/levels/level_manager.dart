@@ -26,6 +26,8 @@ class LevelManager {
   int levelKills = 0;
   int levelDamage = 0;
   int totalEnemiesSpawned = 0;
+  int _pendingSpawns = 0;
+  bool _playerDead = false; // Track if player has died
 
   LevelManager(this.gameRef);
 
@@ -122,39 +124,58 @@ class LevelManager {
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
     final dropUp = params['drop_up'] as int? ?? 0;
+    final spawnInterval = (params['spawn_interval'] as num?)?.toDouble() ?? 0.5;
     final random = Random();
 
-    for (int i = 0; i < count; i++) {
-      // Create NEW movement behavior for each enemy (behaviors have internal state)
-      final movementBehavior = BehaviorFactory.fromJson(params);
+    // Increment pending spawns for the total count of enemies to be spawned
+    _pendingSpawns += count;
 
-      // Calculate random Y offset for spread pattern
-      // Randomize between 0 and -50 pixels (further up off-screen) to spread them out vertically
-      double yOffset = 0.0;
-      if (spawnPattern == 'spread') {
-        yOffset = -random.nextDouble() * 100.0;
+    for (int i = 0; i < count; i++) {
+      void spawn() {
+        if (levelState != LevelState.running) {
+          _pendingSpawns--; // Decrement if we abort spawn
+          return;
+        }
+
+        // Create NEW movement behavior for each enemy (behaviors have internal state)
+        final movementBehavior = BehaviorFactory.fromJson(params);
+
+        // Calculate random Y offset for spread pattern
+        // Randomize between 0 and -50 pixels (further up off-screen) to spread them out vertically
+        double yOffset = 0.0;
+        if (spawnPattern == 'spread') {
+          yOffset = -random.nextDouble() * 100.0;
+        }
+
+        totalEnemiesSpawned++; // Track total enemies for star calculation
+        switch (enemyType) {
+          case 'basic_soldier':
+            final enemy = BasicSoldier(
+              spawnXPercent: spawnX,
+              spawnYOffset: yOffset,
+              dropUpgradePoints: dropUp,
+              movementBehavior: movementBehavior,
+            );
+            gameRef.spawnEnemy(enemy);
+            break;
+          case 'heavy_soldier':
+            final enemy = HeavySoldier(
+              spawnXPercent: spawnX,
+              spawnYOffset: yOffset,
+              dropUpgradePoints: dropUp,
+              movementBehavior: movementBehavior,
+            );
+            gameRef.spawnEnemy(enemy);
+            break;
+        }
+        
+        _pendingSpawns--; // Decrement after successful spawn
       }
 
-      totalEnemiesSpawned++; // Track total enemies for star calculation
-      switch (enemyType) {
-        case 'basic_soldier':
-          final enemy = BasicSoldier(
-            spawnXPercent: spawnX,
-            spawnYOffset: yOffset,
-            dropUpgradePoints: dropUp,
-            movementBehavior: movementBehavior,
-          );
-          gameRef.spawnEnemy(enemy);
-          break;
-        case 'heavy_soldier':
-          final enemy = HeavySoldier(
-            spawnXPercent: spawnX,
-            spawnYOffset: yOffset,
-            dropUpgradePoints: dropUp,
-            movementBehavior: movementBehavior,
-          );
-          gameRef.spawnEnemy(enemy);
-          break;
+      if (spawnPattern == 'line') {
+        Future.delayed(Duration(milliseconds: (spawnInterval * 1000 * i).toInt()), spawn);
+      } else {
+        spawn();
       }
 
       // Add small delay between spawns for spread pattern
@@ -205,6 +226,9 @@ class LevelManager {
   void _checkVictoryConditions() {
     if (currentLevel == null || levelState != LevelState.running) return;
 
+    // Don't check victory if player is dead (waiting for delayed failure)
+    if (_playerDead) return;
+
     final conditions = currentLevel!.victoryConditions;
 
     // Check failure first - too much damage taken
@@ -213,11 +237,12 @@ class LevelManager {
       return;
     }
 
-    // Victory: All events processed AND all enemies cleared
+    // Victory: All events processed AND all enemies cleared AND no pending spawns
     final allEventsProcessed = currentEventIndex >= currentLevel!.events.length;
     final allEnemiesCleared = gameRef.enemiesAlive == 0;
+    final noPendingSpawns = _pendingSpawns <= 0;
 
-    if (allEventsProcessed && allEnemiesCleared) {
+    if (allEventsProcessed && allEnemiesCleared && noPendingSpawns) {
       _completeLevelSuccess();
       return;
     }
@@ -242,6 +267,8 @@ class LevelManager {
     levelKills = 0;
     levelDamage = 0;
     totalEnemiesSpawned = 0;
+    _pendingSpawns = 0;
+    _playerDead = false;
   }
 
   void _applyStartingConditions() {
@@ -282,7 +309,15 @@ class LevelManager {
   // Called when player health reaches 0
   void onPlayerDeath() {
     if (levelState == LevelState.running) {
-      _completeLevelFailure();
+      // Set flag to prevent victory checks
+      _playerDead = true;
+
+      // Delay level failure to allow explosion animation to play
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (levelState == LevelState.running && _playerDead) {
+          _completeLevelFailure();
+        }
+      });
     }
   }
 

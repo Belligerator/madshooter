@@ -1,13 +1,37 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
-import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'enemies/base_enemy.dart';
 import 'barrel.dart';
 
-class Bullet extends RectangleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
+class Bullet extends SpriteAnimationComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 300.0;
+
+  // Original sprite dimensions (from image file)
+  static const double _originalWidth = 343.0;
+  static const double _originalHeight = 274.0;
+
+  // Base display size (scaled down for game)
+  static const double baseWidth = 80.0;
+  static const double baseHeight = baseWidth * (_originalHeight / _originalWidth);
+
+  // Hitbox dimensions (relative to original sprite)
+  static const double hitboxWidth = 13.0;
+  static const double hitboxHeight = 38.0;
+  static const double hitboxOffsetY = 26.0;  // Y offset from top
+
+  // Scale factor from original to base size
+  static double get displayScale => baseWidth / _originalWidth;
+
+  // Scaled hitbox getters (for positioning from other components)
+  static double get scaledHitboxWidth => hitboxWidth * displayScale;
+  static double get scaledHitboxHeight => hitboxHeight * displayScale;
+  static double get scaledHitboxOffsetY => hitboxOffsetY * displayScale;
+  static Vector2 get scaledHitboxSize => Vector2(scaledHitboxWidth, scaledHitboxHeight);
+
   final Vector2 origin;
+
+  Vector2 get baseSize => Vector2(baseWidth, baseHeight);
 
   Bullet({required this.origin});
 
@@ -15,19 +39,39 @@ class Bullet extends RectangleComponent with HasGameReference<ShootingGame>, Col
   Future<void> onLoad() async {
     super.onLoad();
 
-    // Get bullet size from game (with upgrades applied)
-    final bulletSize = game.getBulletSize();
-    size = Vector2(bulletSize.x, bulletSize.y);
-    paint = Paint()..color = Colors.yellow;
+    // debugMode = true;
 
-    // Position bullet centered on the origin point
+    // Load the 5 bullet sprites
+    final sprites = await Future.wait([
+      game.loadSprite('bullet/Projectile_Player_Bullet1.webp'),
+      game.loadSprite('bullet/Projectile_Player_Bullet2.webp'),
+      game.loadSprite('bullet/Projectile_Player_Bullet3.webp'),
+      game.loadSprite('bullet/Projectile_Player_Bullet4.webp'),
+      game.loadSprite('bullet/Projectile_Player_Bullet5.webp'),
+    ]);
+
+    // Create animation (plays once and stops on last frame)
+    animation = SpriteAnimation.spriteList(sprites, stepTime: 0.1, loop: true);
+
+    // Get bullet size from game (with upgrades applied)
+    size = baseSize;
+    anchor = Anchor.topCenter;
+    scale = Vector2.all(game.bulletSizeMultiplier);
+
+    // Position bullet at origin (anchor handles centering)
     position = Vector2(
-      origin.x - size.x / 2, // Center horizontally on origin
-      origin.y - size.y,     // Position just above origin
+      origin.x, // Center X (topCenter anchor)
+      origin.y, // Top of bullet at origin Y
     );
 
-    // Add collision detection
-    add(RectangleHitbox());
+    // Add collision detection (centered horizontally)
+    final scaledHitboxWidth = hitboxWidth * displayScale;
+    add(
+      RectangleHitbox(
+        size: Vector2(scaledHitboxWidth, hitboxHeight * displayScale),
+        position: Vector2((baseWidth - scaledHitboxWidth) / 2, hitboxOffsetY * displayScale),
+      ),
+    );
   }
 
   @override

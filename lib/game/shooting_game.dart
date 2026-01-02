@@ -8,6 +8,7 @@ import 'components/ally.dart';
 import 'components/space_background.dart';
 import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
+import 'components/explosion_effect.dart';
 import 'components/header.dart';
 import 'game_config.dart';
 import 'levels/level_manager.dart';
@@ -157,10 +158,23 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Check for death
     if (playerHealth <= 0) {
       playerHealth = 0;
-      levelManager.onPlayerDeath();
+      _onPlayerDestroyed();
     }
 
     _updateLabels();
+  }
+
+  // Handle player destruction with explosion effect
+  void _onPlayerDestroyed() {
+    // Spawn explosion effect at player center
+    final explosion = ExplosionEffect(origin: player.position.clone());
+    world.add(explosion);
+
+    // Hide player immediately (remove from world but keep reference)
+    player.removeFromParent();
+
+    // Notify level manager of player death (which handles the delay internally)
+    levelManager.onPlayerDeath();
   }
 
   void _updateLabels() {
@@ -205,6 +219,13 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
     allies.clear();
     allyCount = 0;
+
+    // Re-add player if it was removed (e.g., after death)
+    if (player.isRemoved) {
+      world.add(player);
+      // Reset player position
+      player.position = Vector2(gameWidth / 2, gameHeight - Player.playerBottomPositionY);
+    }
 
     // Reset stats
     killCount = 0;
@@ -337,12 +358,6 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   void clearMessage() {
     currentMessage = null;
-  }
-
-  // Get current bullet size with upgrades applied
-  Vector2 getBulletSize() {
-    final baseSize = Vector2(GameConfig.baseBulletWidth, GameConfig.baseBulletHeight);
-    return Vector2(baseSize.x * bulletSizeMultiplier, baseSize.y * bulletSizeMultiplier);
   }
 
   // Get current bullet damage with upgrades applied

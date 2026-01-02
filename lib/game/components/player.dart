@@ -1,40 +1,98 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
-import 'package:flutter/material.dart';
 import '../shooting_game.dart';
 import 'bullet.dart';
+import 'bullet_emitter.dart';
+import 'thruster_effect.dart';
 import 'upgrade_point.dart';
 import 'enemies/base_enemy.dart';
 
-class Player extends CircleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
+class Player extends SpriteComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;
-  static const double playerRadius = 12.0;
   static const double playerBottomPositionY = 100.0;
 
-  late double leftBoundary = 0;
-  late double rightBoundary = game.gameWidth - 2 * playerRadius;
-  late double topBoundary = 0;
-  late double bottomBoundary = game.gameHeight - 2 * playerRadius;
+  // Original sprite dimensions (from image file)
+  static const double _originalWidth = 256;
+  static const double _originalHeight = 256;
+
+  // Base display size (scaled down for game)
+  final double baseWidth = 80.0;
+  double get baseHeight => baseWidth * (_originalHeight / _originalWidth);
+
+  // Main hitbox dimensions (in original sprite coordinates)
+  final double hitboxWidth = 145;
+  final double hitboxHeight = 160;
+  final double hitboxOffsetX = 55;
+  final double hitboxOffsetY = 60;
+
+  // Nose hitbox dimensions (in original sprite coordinates)
+  final double noseHitboxRadius = 20.0;  // actual value
+  final double noseHitboxOffsetX = _originalWidth / 2;
+  final double noseHitboxOffsetY = 56.0; // actual value (center Y)
+
+  // Thruster positions (in original sprite coordinates)
+  final double thrusterLeftX = 70;   // actual position
+  final double thrusterRightX = 185; // actual position
+   double get thrusterY => 220;      // actual position (bottom of ship)
+
+  // Scale factor from original to base size
+  double get displayScale => baseWidth / _originalWidth;
+
+  // Calculated hitbox size and position
+  Vector2 get hitboxSize => Vector2(hitboxWidth * displayScale, hitboxHeight * displayScale);
+  Vector2 get hitboxPosition => Vector2(hitboxOffsetX * displayScale, hitboxOffsetY * displayScale);
+
+  // Calculated nose hitbox radius and position (for CircleHitbox)
+  double get noseHitboxScaledRadius => noseHitboxRadius * displayScale;
+  Vector2 get noseHitboxPosition => Vector2(noseHitboxOffsetX * displayScale, noseHitboxOffsetY * displayScale);
+
+  late double leftBoundary = baseWidth / 2;
+  late double rightBoundary = game.gameWidth - baseWidth / 2;
+  late double topBoundary = baseHeight / 2;
+  late double bottomBoundary = game.gameHeight - baseHeight / 2;
 
   double _timeSinceLastShot = 0;
 
   @override
   Future<void> onLoad() async {
     super.onLoad();
-
-    // Create circular player (same pattern as soldiers)
-    radius = playerRadius;
-    paint = Paint()..color = Colors.blue;
+// debugMode = true;
+    // Load player ship sprite
+    sprite = await game.loadSprite('player/PlayerShip_Medium.webp');
+    size = Vector2(baseWidth, baseHeight);
+    anchor = Anchor.center;
 
     // Set priority to render above enemies but below header
-    priority = 100;
+    priority = 200;
 
-    // Add collision detection
-    add(CircleHitbox());
+    // Add main body hitbox
+    add(RectangleHitbox(size: hitboxSize, position: hitboxPosition));
+
+    // Add nose hitbox (circle)
+    add(CircleHitbox(
+      radius: noseHitboxScaledRadius,
+      position: noseHitboxPosition,
+      anchor: Anchor.center,
+    ));
+
+    // Add left thruster
+    final leftThruster = ThrusterEffect();
+    leftThruster.position = Vector2(
+      thrusterLeftX * displayScale,
+      thrusterY * displayScale,
+    );
+    add(leftThruster);
+
+    // Add right thruster
+    final rightThruster = ThrusterEffect();
+    rightThruster.position = Vector2(
+      thrusterRightX * displayScale,
+      thrusterY * displayScale,
+    );
+    add(rightThruster);
 
     // Position at bottom center of game world
-    final centerX = game.gameWidth / 2 - radius;
-    position = Vector2(centerX, game.gameHeight - playerBottomPositionY - radius);
+    position = Vector2(game.gameWidth / 2, game.gameHeight - playerBottomPositionY);
   }
 
   void move(double joystickX, double joystickY) {
@@ -47,18 +105,11 @@ class Player extends CircleComponent with HasGameReference<ShootingGame>, Collis
     position.y = position.y.clamp(topBoundary, bottomBoundary);
   }
 
-  void moveToSliderPosition(double sliderValue) {
-    // Convert slider value (0.0 to 1.0) to player position
-    // 0.0 = left boundary, 1.0 = right boundary
-    final targetX = leftBoundary + (rightBoundary - leftBoundary) * sliderValue;
-    position.x = targetX;
-  }
-
   void moveByDelta(double deltaX, double deltaY) {
     // Move player by the same amount as thumb (1:1 relative movement)
     position.x += deltaX;
     position.y += deltaY;
-    position.x = position.x.clamp(leftBoundary, rightBoundary);
+    position.x = position.x.clamp(leftBoundary - baseWidth / 2, rightBoundary + baseWidth / 2);
     position.y = position.y.clamp(topBoundary, bottomBoundary);
   }
 
@@ -90,17 +141,28 @@ class Player extends CircleComponent with HasGameReference<ShootingGame>, Collis
   }
 
   void _shoot() {
-    // Calculate the origin point (center of player at top)
-    final originPoint = Vector2(
-      position.x + radius, // Center X of player (CircleComponent position is center)
-      position.y - radius, // Top of player circle
+    // Player hitbox top in world coordinates
+    final playerHitboxTopY = position.y - baseHeight / 2 + hitboxPosition.y;
+
+    // Bullet origin so bullet hitbox bottom touches player hitbox top
+    final bulletOriginPoint = Vector2(
+      position.x,
+      playerHitboxTopY - Bullet.scaledHitboxOffsetY - Bullet.scaledHitboxHeight,
     );
 
-    // Create bullet with origin point
-    final bullet = Bullet(origin: originPoint);
+    // Emitter at player hitbox top
+    final emitterOriginPoint = Vector2(
+      position.x,
+      playerHitboxTopY,
+    );
 
-    // Add bullet to the game world
+    // Create bullet
+    final bullet = Bullet(origin: bulletOriginPoint);
     game.world.add(bullet);
+
+    // Create muzzle flash effect
+    final emitter = BulletEmitter(origin: emitterOriginPoint);
+    game.world.add(emitter);
   }
 
   @override

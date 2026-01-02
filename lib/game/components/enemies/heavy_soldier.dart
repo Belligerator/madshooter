@@ -1,24 +1,51 @@
-import 'package:flutter/material.dart';
+import 'package:flame/collisions.dart';
+import 'package:flame/components.dart';
 import 'base_enemy.dart';
-import 'behaviors/movement_behavior.dart';
 
 class HeavySoldier extends BaseEnemy {
+  // Original sprite dimensions (from image file)
+  static const double _originalWidth = 256.0;
+  static const double _originalHeight = 256.0;
+
+  // Base display size (what you work with in game)
+  static const double _baseWidth = 100.0;
+  static const double _baseHeight = _baseWidth * (_originalHeight / _originalWidth);
+
+  // Scale factor from original to base size
+  static double get displayScale => _baseWidth / _originalWidth;
+
+  // Hitbox dimensions (relative to original sprite)
+  static const double _hitboxWidth = 122.0;
+  static const double _hitboxHeight = 130.0;
+
+  // Scaled hitbox getters (for positioning from other components)
+  static double get scaledHitboxWidth => _hitboxWidth * displayScale;
+  static double get scaledHitboxHeight => _hitboxHeight * displayScale;
+
   HeavySoldier({
-    double? spawnXPercent,
-    double spawnYOffset = 0.0,
-    int dropUpgradePoints = 0,
-    bool destroyedOnPlayerCollision = true,
-    MovementBehavior? movementBehavior,
+    super.spawnXPercent,
+    super.spawnYOffset,
+    super.dropUpgradePoints,
+    super.destroyedOnPlayerCollision,
+    super.movementBehavior,
   }) : super(
     maxHealth: 500,
-    enemyColor: Colors.purple,
-    enemyRadius: 16.0, // Bigger than basic soldier (12.0)
-    spawnXPercent: spawnXPercent,
-    spawnYOffset: spawnYOffset,
-    dropUpgradePoints: dropUpgradePoints,
-    destroyedOnPlayerCollision: destroyedOnPlayerCollision,
-    movementBehavior: movementBehavior,
+    spritePath: 'enemies/Enemy_Tank_Base.webp',
+    baseWidth: _baseWidth,
+    baseHeight: _baseHeight,
+    healthBarWidth: scaledHitboxWidth,
+    healthBarX: _baseWidth / 2 - scaledHitboxWidth / 2,
+    healthBarY: _baseHeight / 2 - scaledHitboxHeight / 2,
   );
+
+  @override
+  void addHitboxes() {
+    add(RectangleHitbox(
+      size: Vector2(scaledHitboxWidth, scaledHitboxHeight),
+      position: Vector2(_baseWidth / 2, _baseHeight / 2),
+      anchor: Anchor.center,
+    ));
+  }
 
   @override
   double getSpeed() => super.getSpeed() * 0.5;

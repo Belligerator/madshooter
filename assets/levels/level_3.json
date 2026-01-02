@@ -1,7 +1,7 @@
 {
   "levelId": 3,
   "name": "Onslaught",
-  "duration": 75,
+  "duration": 100,
   "description": "Intense survival against endless waves. No mercy!",
   "starting_conditions": {
     "bullet_size_multiplier": 1.0,
@@ -18,7 +18,7 @@
       "timestamp": 2.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 4,
+      "count": 8,
       "spawn_pattern": "spread",
       "drop_up": 1
     },
@@ -26,7 +26,7 @@
       "timestamp": 6.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 2,
+      "count": 4,
       "spawn_pattern": "spread",
       "drop_up": 1
     },
@@ -34,7 +34,7 @@
       "timestamp": 11.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 3,
+      "count": 8,
       "spawn_pattern": "spread"
     },
     {
@@ -53,14 +53,14 @@
       "timestamp": 20.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 2,
+      "count": 5,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 22.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 4,
+      "count": 10,
       "spawn_pattern": "spread",
       "drop_up": 1
     },
@@ -68,28 +68,28 @@
       "timestamp": 27.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 3,
+      "count": 6,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 32.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 5,
+      "count": 10,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 38.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 6,
+      "count": 12,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 43.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 3,
+      "count": 6,
       "spawn_pattern": "spread",
       "drop_up": 1
     },
@@ -97,54 +97,33 @@
       "timestamp": 48.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 4,
+      "count": 10,
       "spawn_pattern": "spread"
     },
     {
-      "timestamp": 50.0,
-      "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
-      "count": 2,
-      "spawn_pattern": "spread"
-    },
-    {
-      "timestamp": 56.0,
-      "type": "spawn_barrel",
-      "barrel_type": "fire_rate",
-      "spawn_x": 0.5
-    },
-    {
-      "timestamp": 58.0,
+      "timestamp": 53.0,
       "type": "message",
-      "message": "Final stand!"
+      "message": "Snake incoming!"
     },
     {
-      "timestamp": 60.0,
-      "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
-      "count": 4,
-      "spawn_pattern": "spread"
-    },
-    {
-      "timestamp": 64.0,
+      "timestamp": 55.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 6,
-      "spawn_pattern": "spread"
+      "count": 10,
+      "spawn_pattern": "line",
+      "spawn_interval": 0.5,
+      "spawn_x": 0.5,
+      "movement": "sine",
+      "amplitude": 60,
+      "frequency": 0.5
     },
     {
-      "timestamp": 68.0,
+      "timestamp": 65.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
-      "count": 3,
-      "spawn_pattern": "spread"
-    },
-    {
-      "timestamp": 70.0,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 4,
-      "spawn_pattern": "spread"
+      "count": 10,
+      "spawn_pattern": "spread",
+      "drop_up": 2
     }
   ],
   "victory_conditions": {}

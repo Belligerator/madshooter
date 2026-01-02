@@ -10,15 +10,10 @@
   },
   "events": [
     {
-      "timestamp": 5.0,
+      "timestamp": 0.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 1,
-      "spawn_pattern": "spread",
-      "movement": "strategic",
-      "strategy": "flank",
-      "target_y": 0,
-      "drop_up": 1
+      "count": 1
     }
   ],
   "victory_conditions": {}
