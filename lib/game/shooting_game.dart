@@ -4,7 +4,6 @@ import 'package:flame/events.dart';
 import 'package:flame/components.dart';
 import 'package:flame/camera.dart';
 import 'package:flame/collisions.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
@@ -15,7 +14,6 @@ import 'components/enemies/basic_soldier.dart';
 import 'components/enemies/heavy_soldier.dart';
 import 'components/enemies/enemy_pool.dart';
 import 'components/explosion_effect.dart';
-import 'components/header.dart';
 import 'game_config.dart';
 import 'levels/level_manager.dart';
 import 'levels/level_state.dart';
@@ -31,7 +29,6 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
   late Player player;
   late SpaceBackground spaceBackground;
   late PlayerSlider playerSlider;
-  late Header header;
   late LevelManager levelManager;
 
   // Pre-cached enemy sprites for performance
@@ -83,7 +80,8 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
 
   // Game area dimensions (excluding header)
   double get gameWidth => size.x;
-  double get gameHeight => size.y - headerHeight / 2;
+  // double get gameHeight => size.y - headerHeight / 2;
+  double get gameHeight => size.y;
 
   @override
   Future<void> onLoad() async {
@@ -97,9 +95,9 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     final worldComponent = World();
     final cameraComponent = CameraComponent(world: worldComponent);
 
-    // Use fixed size viewport positioned below header
+    // Use fixed size viewport covering full screen
     cameraComponent.viewport = FixedSizeViewport(gameWidth, gameHeight);
-    cameraComponent.viewport.position = Vector2(0, headerHeight);
+    cameraComponent.viewport.position = Vector2(0, 0);
 
     // Viewfinder looks at center of game world
     cameraComponent.viewfinder.position = Vector2(0, 0);
@@ -128,10 +126,6 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     worldComponent.add(spaceBackground);
     worldComponent.add(player);
     worldComponent.add(playerSlider);
-
-    // Add header directly to game (screen space, not world space)
-    header = Header();
-    add(header);
 
     // Initialize level manager
     levelManager = LevelManager(this);
@@ -222,8 +216,7 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
   }
 
   void _updateLabels() {
-    header.updateKills(killCount);
-    header.updateHealth(playerHealth, maxPlayerHealth);
+    // Update labels removed from UI 
   }
 
   void updateUpgradeLabels() {
@@ -425,10 +418,10 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
   }
 
   // Helper method to get the game area height (excluding header and safe areas)
-  double get gameAreaHeight => size.y - headerHeight;
+  double get gameAreaHeight => size.y;
 
   // Helper method to get the game area start position (including safe area)
-  double get gameAreaTop => headerHeight;
+  double get gameAreaTop => 0;
 
   // Level status getters for UI
   bool get isLevelActive => levelManager.levelState == LevelState.running;

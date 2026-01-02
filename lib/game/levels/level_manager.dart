@@ -293,9 +293,6 @@ class LevelManager {
       gameRef.addAlly();
     }
 
-    // Update UI to reflect starting conditions
-    gameRef.updateUpgradeLabels();
-
     print(
       'Applied starting conditions: Size ${startingConditions.bulletSizeMultiplier}x, Rate +${startingConditions.additionalFireRate}/s, Allies ${startingConditions.allyCount}',
     );

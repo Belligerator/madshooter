@@ -304,6 +304,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           ),
         ),
         body: SafeArea(
+          bottom: false,
           child: FutureBuilder(
             future: _initFuture,
             builder: (context, snapshot) {
@@ -311,28 +312,31 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 children: [
                   // Game widget
                   GameWidget(key: gameKey, game: game),
-          
-                  // Menu button (moved to where pause button was)
+
+                  // Menu button (Pause) - Top Center
                   Positioned(
                     top: 15,
-                    right: 20,
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      child: FloatingActionButton(
-                        heroTag: "menu_button",
-                        onPressed: _showGameMenu,
-                        backgroundColor: Colors.black.withOpacity(0.7),
-                        child: Icon(Icons.menu, color: Colors.white, size: 24),
-                        mini: true,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: FloatingActionButton(
+                          heroTag: "menu_button",
+                          onPressed: _showGameMenu,
+                          backgroundColor: Colors.black.withOpacity(0.5),
+                          mini: true,
+                          child: Icon(Icons.pause, color: Colors.white, size: 24),
+                        ),
                       ),
                     ),
                   ),
-          
-                  // UP meter in header area (left side)
+
+                  // UP meter - Bottom Left near thumb
                   Positioned(
                     left: 20,
-                    top: 20,
+                    bottom: 20,
                     child: UpMeter(
                       upgradePoints: game.upgradePoints,
                       bulletSizeLevel: game.bulletSizeLevel,
@@ -343,11 +347,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       },
                     ),
                   ),
-          
+
                   // Upgrade button at bottom right near thumb
                   Positioned(
                     right: 20,
-                    bottom: 120,
+                    bottom: 20,
                     child: UpgradeButton(
                       canUpgrade: game.getHighestAvailableTier() != null,
                       onTap: () {
@@ -356,7 +360,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                       },
                     ),
                   ),
-          
+
                   // In-game message banner
                   if (_displayedMessage != null)
                     Positioned(

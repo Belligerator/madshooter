@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
+import 'package:madshooter/widgets/up_meter.dart';
 import '../shooting_game.dart';
 import 'bullet.dart';
 import 'bullet_emitter.dart';
@@ -26,14 +27,14 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
   final double hitboxOffsetY = 60;
 
   // Nose hitbox dimensions (in original sprite coordinates)
-  final double noseHitboxRadius = 20.0;  // actual value
+  final double noseHitboxRadius = 20.0; // actual value
   final double noseHitboxOffsetX = _originalWidth / 2;
   final double noseHitboxOffsetY = 56.0; // actual value (center Y)
 
   // Thruster positions (in original sprite coordinates)
-  final double thrusterLeftX = 70;   // actual position
+  final double thrusterLeftX = 70; // actual position
   final double thrusterRightX = 185; // actual position
-   double get thrusterY => 220;      // actual position (bottom of ship)
+  double get thrusterY => 220; // actual position (bottom of ship)
 
   // Scale factor from original to base size
   double get displayScale => baseWidth / _originalWidth;
@@ -56,7 +57,7 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
   @override
   Future<void> onLoad() async {
     super.onLoad();
-// debugMode = true;
+    // debugMode = true;
     // Load player ship sprite
     sprite = await game.loadSprite('player/PlayerShip_Medium.webp');
     size = Vector2(baseWidth, baseHeight);
@@ -66,29 +67,19 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
     priority = 200;
 
     // Add main body hitbox
-   add(RectangleHitbox(size: hitboxSize, position: hitboxPosition));
+    add(RectangleHitbox(size: hitboxSize, position: hitboxPosition));
 
     // Add nose hitbox (circle)
-    add(CircleHitbox(
-      radius: noseHitboxScaledRadius,
-      position: noseHitboxPosition,
-      anchor: Anchor.center,
-    ));
+    add(CircleHitbox(radius: noseHitboxScaledRadius, position: noseHitboxPosition, anchor: Anchor.center));
 
     // Add left thruster
     final leftThruster = ThrusterEffect();
-    leftThruster.position = Vector2(
-      thrusterLeftX * displayScale,
-      thrusterY * displayScale,
-    );
+    leftThruster.position = Vector2(thrusterLeftX * displayScale, thrusterY * displayScale);
     add(leftThruster);
 
     // Add right thruster
     final rightThruster = ThrusterEffect();
-    rightThruster.position = Vector2(
-      thrusterRightX * displayScale,
-      thrusterY * displayScale,
-    );
+    rightThruster.position = Vector2(thrusterRightX * displayScale, thrusterY * displayScale);
     add(rightThruster);
 
     // Position at bottom center of game world
@@ -110,20 +101,12 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
     position.x += deltaX;
     position.y += deltaY;
     position.x = position.x.clamp(leftBoundary - baseWidth / 2, rightBoundary + baseWidth / 2);
-    position.y = position.y.clamp(topBoundary, bottomBoundary);
+    position.y = position.y.clamp(topBoundary, bottomBoundary - upMeterHeight);
   }
 
   // Joystick-style constant speed movement
   static const double baseSpeed = 200.0; // pixels per second
   double speedMultiplier = 1.0; // can be upgraded later
-
-  void moveConstantSpeed(int direction, double dt) {
-    final moveSpeed = baseSpeed * speedMultiplier;
-    position.x += direction * moveSpeed * dt;
-
-    // Clamp to road boundaries
-    position.x = position.x.clamp(leftBoundary, rightBoundary);
-  }
 
   @override
   void update(double dt) {
@@ -151,10 +134,7 @@ class Player extends SpriteComponent with HasGameReference<ShootingGame>, Collis
     );
 
     // Emitter at player hitbox top
-    final emitterOriginPoint = Vector2(
-      position.x,
-      playerHitboxTopY,
-    );
+    final emitterOriginPoint = Vector2(position.x, playerHitboxTopY);
 
     // Create bullet
     final bullet = Bullet(origin: bulletOriginPoint);

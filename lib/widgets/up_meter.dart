@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../game/shooting_game.dart';
 
+const double upMeterHeight = 60.0;
+
 class UpMeter extends StatelessWidget {
   final int upgradePoints;
   final int bulletSizeLevel;
@@ -33,7 +35,7 @@ class UpMeter extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.black.withAlpha(180),
+        // color: Colors.black.withAlpha(180),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -72,7 +74,7 @@ class UpMeter extends StatelessWidget {
     return GestureDetector(
       onTap: isAvailable ? () => onUpgradeTap?.call(tier) : null,
       child: Container(
-        padding: EdgeInsets.all(3),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: isAvailable ? color.withAlpha(50) : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
