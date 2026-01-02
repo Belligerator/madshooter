@@ -140,12 +140,12 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     basicSoldierPool = EnemyPool<BasicSoldier>(
       () => BasicSoldier(cachedSprite: basicSoldierSprite),
       worldComponent,
-      initialSize: 100,
+      initialSize: 1,
     );
     heavySoldierPool = EnemyPool<HeavySoldier>(
       () => HeavySoldier(cachedSprite: heavySoldierSprite),
       worldComponent,
-      initialSize: 20,
+      initialSize: 1,
     );
 
     // Don't automatically load level here - let the GameScreen handle it
@@ -172,19 +172,7 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     // Update level manager
     levelManager.update(clampedDt);
     // Clean up dead enemies from our tracking list
-    _enemies.removeWhere((enemy) {
-
-      if (enemy.isRemoved) {
-        return true; // Remove from tracking list
-      }
-
-      // Check if enemy escaped (reached bottom)
-      if (enemy.position.y > gameHeight - enemy.outOfBoundsThreshold) {
-        return true; // Just remove, no damage (damage only on collision now)
-      }
-
-      return false; // Keep in tracking list
-    });
+    _enemies.removeWhere((enemy) => enemy.isRemoved);
   }
 
   // Public method to spawn enemy and track it

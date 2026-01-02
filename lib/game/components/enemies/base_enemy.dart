@@ -133,13 +133,12 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     final healthPaint = healthPercent > 0.6
         ? _greenPaint
         : healthPercent > 0.3
-            ? _yellowPaint
-            : _redPaint;
+        ? _yellowPaint
+        : _redPaint;
 
-    canvas.drawRect(
-      Rect.fromLTWH(healthBarX, barY, foregroundWidth, _healthBarHeight),
-      healthPaint,
-    );
+    if (foregroundWidth > 0) {
+      canvas.drawRect(Rect.fromLTWH(healthBarX, barY, foregroundWidth, _healthBarHeight), healthPaint);
+    }
   }
 
   @override

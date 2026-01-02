@@ -14,6 +14,12 @@
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
       "count": 1
+    },
+    {
+      "timestamp": 0.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "count": 1
     }
   ],
   "victory_conditions": {}

@@ -122,7 +122,7 @@ class LevelManager {
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
     final dropUp = params['drop_up'] as int? ?? 0;
-    final spawnInterval = (params['spawn_interval'] as num?)?.toDouble() ?? 0.5;
+    final spawnInterval = (params['spawn_interval'] as num?)?.toDouble() ?? 1;
     final random = Random();
 
     // Increment pending spawns for the total count of enemies to be spawned
@@ -213,7 +213,7 @@ class LevelManager {
     final actualDropUp = barrelType == BarrelType.upgradePoint && dropUp == 0 ? 1 : dropUp;
 
     final barrel = Barrel(type: barrelType, spawnXPercent: spawnX, dropUpgradePoints: actualDropUp);
-    gameRef.add(barrel);
+    gameRef.world.add(barrel);
 
     print('Spawned ${barrelType.displayName} barrel');
   }
@@ -239,7 +239,12 @@ class LevelManager {
 
     // Victory: All events processed AND all enemies cleared AND no pending spawns
     final allEventsProcessed = currentEventIndex >= currentLevel!.events.length;
-    final allEnemiesCleared = gameRef.enemiesAlive == 0;
+    
+    // Check both the tracking list and the object pools to be sure
+    final allEnemiesCleared = gameRef.enemiesAlive == 0 && 
+                             gameRef.basicSoldierPool.activeCount == 0 && 
+                             gameRef.heavySoldierPool.activeCount == 0;
+                             
     final noPendingSpawns = _pendingSpawns <= 0;
 
     if (allEventsProcessed && allEnemiesCleared && noPendingSpawns) {

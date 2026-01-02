@@ -54,7 +54,7 @@ enum BarrelType {
   }
 }
 
-class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
+class Barrel extends PositionComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 20.0;
   static const int maxHealth = 800;
   static final Random _random = Random();
@@ -65,6 +65,7 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
   int currentHealth = maxHealth;
   late RectangleComponent healthBarBackground;
   late RectangleComponent healthBarForeground;
+  late Paint _paint;
 
   Barrel({required this.type, this.spawnXPercent, this.dropUpgradePoints = 0});
 
@@ -76,10 +77,10 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
     size = Vector2(25, 30);
 
     // Set barrel color from enum
-    paint = Paint()..color = type.color;
+    _paint = Paint()..color = type.color;
 
     // Set priority to render above road but below player
-    priority = 75;
+    priority = 49;
 
     // Add collision detection
     add(RectangleHitbox(collisionType: CollisionType.passive));
@@ -110,6 +111,21 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
         : leftBound + _random.nextDouble() * (rightBound - leftBound);
     // Spawn at top of game world (Y=0 is now below header in world coordinates)
     position = Vector2(spawnX, -size.y);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    // Draw the barrel body
+    canvas.drawRect(size.toRect(), _paint);
+    // Draw some "barrel" details (lines)
+    final detailPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawRect(size.toRect(), detailPaint);
+    canvas.drawLine(Offset(0, size.y * 0.3), Offset(size.x, size.y * 0.3), detailPaint);
+    canvas.drawLine(Offset(0, size.y * 0.7), Offset(size.x, size.y * 0.7), detailPaint);
   }
 
   @override
