@@ -15,17 +15,17 @@
       "message": "Welcome, soldier! Move to dodge enemies!"
     },
     {
-      "timestamp": 5.0,
+      "timestamp": 0.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 300,
+      "count": 4000,
       "spawn_pattern": "spread",
       "movement": "strategic",
       "strategy": "flank",
       "drop_up": 1
     },
     {
-      "timestamp": 10.0,
+      "timestamp": 5.0,
       "type": "message",
       "message": "Collect UP to unlock upgrades!"
     },
@@ -33,7 +33,7 @@
       "timestamp": 12.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 300,
+      "count": 10,
       "spawn_pattern": "spread",
       "drop_up": 2
     },

@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flame/game.dart';
 import 'package:flame/events.dart';
 import 'package:flame/components.dart';
 import 'package:flame/camera.dart';
+import 'package:flame/collisions.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'components/player.dart';
@@ -25,7 +27,7 @@ enum UpgradeTier {
   ally, // Tier 3: 3+ UP
 }
 
-class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHandlerComponents {
+class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyboardHandlerComponents {
   late Player player;
   late SpaceBackground spaceBackground;
   late PlayerSlider playerSlider;
@@ -107,6 +109,17 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     camera = cameraComponent;
     world = worldComponent;
 
+    // Configure QuadTree broadphase for better collision performance with many enemies
+    // Bounds cover game area + buffer for spawning enemies above and bullets traveling up
+    initializeCollisionDetection(
+      mapDimensions: Rect.fromLTWH(
+        0,                  // Left bound (world X origin)
+        -200,               // Top bound (buffer for enemies spawning above screen)
+        gameWidth,          // Width (full game width)
+        gameHeight + 400,   // Height (game area + spawn buffer above + exit buffer below)
+      ),
+    );
+
     // Add all game components to world
     spaceBackground = SpaceBackground(initialLevelId: initialLevelId);
     player = Player();
@@ -144,7 +157,12 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Don't update if game is paused
     if (isPaused) return;
 
-    super.update(dt);
+    // Clamp dt to prevent tunneling (max 20 FPS step)
+    // Bullet speed 300 * 0.05 = 15px. Bullet hitbox height ~18px.
+    // This ensures the bullet never moves further than its own size in one frame.
+    final clampedDt = min(dt, 0.05);
+
+    super.update(clampedDt);
 
     // Update ally positions to follow main player
     for (final ally in allies) {
@@ -152,7 +170,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     }
 
     // Update level manager
-    levelManager.update(dt);
+    levelManager.update(clampedDt);
     // Clean up dead enemies from our tracking list
     _enemies.removeWhere((enemy) {
 
