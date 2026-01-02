@@ -140,12 +140,12 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     basicSoldierPool = EnemyPool<BasicSoldier>(
       () => BasicSoldier(cachedSprite: basicSoldierSprite),
       worldComponent,
-      initialSize: 1,
+      initialSize: 50,
     );
     heavySoldierPool = EnemyPool<HeavySoldier>(
       () => HeavySoldier(cachedSprite: heavySoldierSprite),
       worldComponent,
-      initialSize: 1,
+      initialSize: 20,
     );
 
     // Don't automatically load level here - let the GameScreen handle it

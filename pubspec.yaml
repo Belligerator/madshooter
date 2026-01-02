@@ -29,6 +29,7 @@ flutter:
     - assets/levels/
     - assets/images/enemies/
     - assets/images/player/
+    - assets/images/pickups/
     - assets/images/player/thruster_emit/
     - assets/images/bullet/
     - assets/images/parallax/
