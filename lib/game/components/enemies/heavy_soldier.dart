@@ -46,6 +46,7 @@ class HeavySoldier extends BaseEnemy {
         radius: scaledHitboxWidth / 2,
         position: Vector2(_baseWidth / 2, _baseHeight / 2),
         anchor: Anchor.center,
+        collisionType: CollisionType.passive,
       ),
     );
   }

@@ -21,7 +21,7 @@ class UpgradePoint extends CircleComponent with HasGameReference<ShootingGame>, 
     paint = Paint()..color = Colors.amber;
     priority = 60;
 
-    add(CircleHitbox());
+    add(CircleHitbox(collisionType: CollisionType.passive));
   }
 
   @override

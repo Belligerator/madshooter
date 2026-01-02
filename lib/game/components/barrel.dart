@@ -82,7 +82,7 @@ class Barrel extends RectangleComponent with HasGameReference<ShootingGame>, Col
     priority = 75;
 
     // Add collision detection
-    add(RectangleHitbox());
+    add(RectangleHitbox(collisionType: CollisionType.passive));
 
     // Create health bar background (black)
     healthBarBackground = RectangleComponent(
