@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
 import '../components/enemies/basic_soldier.dart';
 import '../components/enemies/heavy_soldier.dart';
@@ -31,6 +32,11 @@ class LevelManager {
   // Static method to load level data without game reference (for UI purposes)
   static Future<LevelData?> loadLevelData(int levelId) async {
     try {
+      if (levelId > GameConfig.maxLevel) {
+        print('Level $levelId exceeds max level ${GameConfig.maxLevel}');
+        return null;
+      }
+      
       final jsonString = await rootBundle.loadString('assets/levels/level_$levelId.json');
       final jsonData = json.decode(jsonString);
       return LevelData.fromJson(jsonData);
@@ -42,6 +48,11 @@ class LevelManager {
 
   Future<void> loadLevel(int levelId) async {
     try {
+      if (levelId > GameConfig.maxLevel) {
+        print('Level $levelId exceeds max level ${GameConfig.maxLevel}');
+        return;
+      }
+
       final jsonString = await rootBundle.loadString('assets/levels/level_$levelId.json');
       final jsonData = json.decode(jsonString);
       currentLevel = LevelData.fromJson(jsonData);

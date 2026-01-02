@@ -1,7 +1,7 @@
 // lib/screens/level_selection_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:madshooter/game/upgrade_config.dart';
+import 'package:madshooter/game/game_config.dart';
 import '../game/levels/level_data.dart';
 import '../game/levels/level_manager.dart';
 import '../services/progress_service.dart';
@@ -28,7 +28,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
     final levels = <LevelData>[];
 
     // Load levels up to maxLevel from config
-    for (int i = 1; i <= UpgradeConfig.maxLevel; i++) {
+    for (int i = 1; i <= GameConfig.maxLevel; i++) {
       final levelData = await LevelManager.loadLevelData(i);
       if (levelData != null) {
         levels.add(levelData);

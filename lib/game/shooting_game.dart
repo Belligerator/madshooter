@@ -9,7 +9,7 @@ import 'components/space_background.dart';
 import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
 import 'components/header.dart';
-import 'upgrade_config.dart';
+import 'game_config.dart';
 import 'levels/level_manager.dart';
 import 'levels/level_state.dart';
 
@@ -224,11 +224,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Weapon upgrade methods with max limits from config
   bool upgradeBulletSize(double multiplier) {
-    if (bulletSizeMultiplier >= UpgradeConfig.maxBulletSizeMultiplier) {
+    if (bulletSizeMultiplier >= GameConfig.maxBulletSizeMultiplier) {
       return false; // Already at max
     }
 
-    bulletSizeMultiplier = (bulletSizeMultiplier + multiplier).clamp(1.0, UpgradeConfig.maxBulletSizeMultiplier);
+    bulletSizeMultiplier = (bulletSizeMultiplier + multiplier).clamp(1.0, GameConfig.maxBulletSizeMultiplier);
     updateUpgradeLabels(); // Update UI
     return true; // Upgrade applied
   }
@@ -246,7 +246,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   }
 
   bool addAlly() {
-    if (allyCount >= UpgradeConfig.maxAllyCount) {
+    if (allyCount >= GameConfig.maxAllyCount) {
       return false; // Already at max allies
     }
 
@@ -341,7 +341,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Get current bullet size with upgrades applied
   Vector2 getBulletSize() {
-    final baseSize = Vector2(UpgradeConfig.baseBulletWidth, UpgradeConfig.baseBulletHeight);
+    final baseSize = Vector2(GameConfig.baseBulletWidth, GameConfig.baseBulletHeight);
     return Vector2(baseSize.x * bulletSizeMultiplier, baseSize.y * bulletSizeMultiplier);
   }
 
@@ -353,7 +353,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // Get current fire rate with upgrades applied (shots per second)
   double getFireRate() {
-    return UpgradeConfig.baseFireRate + additionalFireRate;
+    return GameConfig.baseFireRate + additionalFireRate;
   }
 
   // Get current fire interval (seconds between shots) - for internal use

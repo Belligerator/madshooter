@@ -5,7 +5,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 import '../shooting_game.dart';
-import '../upgrade_config.dart';
+import '../game_config.dart';
 import 'upgrade_point.dart';
 
 enum BarrelType {
@@ -25,11 +25,11 @@ enum BarrelType {
   double get maxMultiplier {
     switch (this) {
       case BarrelType.bulletSize:
-        return UpgradeConfig.maxBulletSizeMultiplier;
+        return GameConfig.maxBulletSizeMultiplier;
       case BarrelType.fireRate:
-        return UpgradeConfig.maxFireRateMultiplier;
+        return GameConfig.maxFireRateMultiplier;
       case BarrelType.ally:
-        return UpgradeConfig.maxAllyCount;
+        return GameConfig.maxAllyCount;
       case BarrelType.upgradePoint:
         return 10.0; // Max UP
     }
