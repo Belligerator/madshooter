@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flame/events.dart';
 import 'package:flame/components.dart';
 import 'package:flame/camera.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'components/player.dart';
 import 'components/ally.dart';
@@ -57,6 +58,11 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
   // In-game messages
   String? currentMessage;
+
+  // Event callbacks for UI
+  VoidCallback? onLevelComplete;
+  VoidCallback? onLevelFailed;
+  VoidCallback? onStateChanged;
 
   // Constructor to accept safe area padding
   final int initialLevelId;
@@ -294,6 +300,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
     // Just increment UP - collecting more after 3 does nothing until upgrade applied
     if (upgradePoints < maxUpgradePoints) {
       upgradePoints++;
+      onStateChanged?.call();
     }
     // When at max, collecting more UP does nothing (user must upgrade first)
   }
@@ -340,6 +347,7 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
 
     if (applied) {
       upgradePoints = 0; // Reset UP after any upgrade
+      onStateChanged?.call();
     }
     return applied;
   }
@@ -354,10 +362,12 @@ class ShootingGame extends FlameGame with HasCollisionDetection, HasKeyboardHand
   // Message display methods
   void showMessage(String message) {
     currentMessage = message;
+    onStateChanged?.call();
   }
 
   void clearMessage() {
     currentMessage = null;
+    onStateChanged?.call();
   }
 
   // Get current bullet damage with upgrades applied

@@ -251,13 +251,13 @@ class LevelManager {
   void _completeLevelSuccess() {
     levelState = LevelState.completed;
     print('Level completed successfully!');
-    // You can add UI celebration here
+    gameRef.onLevelComplete?.call();
   }
 
   void _completeLevelFailure() {
     levelState = LevelState.failed;
     print('Level failed!');
-    // You can add UI failure screen here
+    gameRef.onLevelFailed?.call();
   }
 
   void _resetLevelState() {

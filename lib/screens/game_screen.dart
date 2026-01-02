@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flame/game.dart';
-import 'dart:async';
 import '../game/shooting_game.dart';
 import '../game/levels/level_manager.dart';
 import '../widgets/dialogs/level_complete_dialog.dart';
@@ -26,7 +25,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late ShootingGame game;
   bool isPaused = false;
   Key gameKey = UniqueKey();
-  Timer? _uiUpdateTimer;
   bool _gameInitialized = false;
   bool _endGameDialogShown = false;
   String? _displayedMessage;
@@ -38,47 +36,38 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _initializeGame();
     _initFuture = _initializeGameMode();
     WidgetsBinding.instance.addObserver(this);
-
-    // Start UI update timer for level progress
-    _startUIUpdateTimer();
   }
 
   void _initializeGame() {
     game = ShootingGame(initialLevelId: widget.levelId);
-  }
 
-  void _startUIUpdateTimer() {
-    // Update UI every 100ms for smooth progress bar and timer updates
-    _uiUpdateTimer = Timer.periodic(Duration(milliseconds: 100), (timer) {
-      if (mounted && !isPaused) {
-        // Check for level end
-        if (!_endGameDialogShown) {
-          if (game.isLevelCompleted) {
-            print('GameScreen: Level Completed detected. Showing dialog.');
-            _endGameDialogShown = true;
-            _showLevelCompleteDialog();
-          } else if (game.isLevelFailed) {
-            print('GameScreen: Level Failed detected. Showing dialog.');
-            _endGameDialogShown = true;
-            _showLevelFailedDialog();
-          }
-        }
+    game.onLevelComplete = () {
+      if (!_endGameDialogShown) {
+        _endGameDialogShown = true;
+        _showLevelCompleteDialog();
+      }
+    };
 
+    game.onLevelFailed = () {
+      if (!_endGameDialogShown) {
+        _endGameDialogShown = true;
+        _showLevelFailedDialog();
+      }
+    };
+
+    game.onStateChanged = () {
+      if (mounted) {
         // Check for new message
         if (game.currentMessage != null && _displayedMessage != game.currentMessage) {
           _displayedMessage = game.currentMessage;
         }
-
-        setState(() {
-          // This will trigger a rebuild with updated game state
-        });
+        setState(() {});
       }
-    });
+    };
   }
 
   @override
   void dispose() {
-    _uiUpdateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -164,8 +153,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               Future.delayed(Duration(milliseconds: 100), () {
                 _initializeGameMode();
               });
-              // Restart the UI update timer
-              _startUIUpdateTimer();
             },
             child: Text('Restart', style: TextStyle(color: Colors.red)),
           ),
