@@ -24,14 +24,18 @@ class LevelData {
   });
 
   factory LevelData.fromJson(Map<String, dynamic> json) {
+    // get events list and sort by time
+    final events = (json['events'] as List)
+        .map((e) => LevelEvent.fromJson(e as Map<String, dynamic>))
+        .toList();
+    events.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    print('Loaded ${events} events for level ${json['levelId']}');
     return LevelData(
       levelId: json['levelId'] as int,
       name: json['name'] as String,
       duration: (json['duration'] as num).toDouble(),
       description: json['description'] as String,
-      events: (json['events'] as List)
-          .map((e) => LevelEvent.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      events: events,
       victoryConditions: VictoryConditions.fromJson(
           json['victory_conditions'] as Map<String, dynamic>),
       startingConditions: LevelStartingConditions.fromJson(

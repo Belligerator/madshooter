@@ -10,17 +10,113 @@
   },
   "events": [
     {
-      "timestamp": 0.0,
-      "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
-      "count": 1,
-      "drop_up": 1
+      "timestamp": 2.0,
+      "type": "message",
+      "message": "chained_bezier"
     },
     {
-      "timestamp": 1.0,
+      "timestamp": 3.0,
       "type": "spawn_enemy",
       "enemy_type": "basic_soldier",
-      "count": 1
+      "movement": "chained_bezier",
+      "count": 1,
+      "spawn_x": 0.0,
+      "spawn_pattern": "line",
+      "smooth": true,
+      "path": [
+        [0.0, 0.0],
+        [0.2, 0.0],
+        [0.8, 0.0],
+        [0.8, 0.0],
+        [0.6, 0.0],
+        [0.2, 0.0],
+        [0.5, 0.0],
+        [0.8, 0.0],
+        [0.9, 0.0]
+      ],
+      "duration": 10
+    },
+    {
+      "timestamp": 3.5,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "movement": "chained_bezier",
+      "count": 1,
+      "spawn_x": 0.0,
+      "spawn_pattern": "line",
+      "smooth": true,
+      "path": [
+        [0.0, 0.0],
+        [0.2, 0.1],
+        [0.8, 0.2],
+        [0.8, 0.3],
+        [0.6, 0.4],
+        [0.2, 0.5],
+        [0.5, 0.6],
+        [0.8, 0.7],
+        [0.9, 0.8]
+      ],
+      "duration": 5
+    },
+    {
+      "timestamp": 13.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "movement": "chained_bezier",
+      "count": 3,
+      "spawn_pattern": "line",
+      "path": [
+        [0.8, 0.0],
+        [1.1, 0.15],
+        [0.5, 0.3],
+        [-0.1, 0.45],
+        [0.5, 0.6],
+        [1.0, 0.75],
+        [0.5, 1.0]
+      ],
+      "duration": 6
+    },
+    {
+      "timestamp": 19.0,
+      "type": "message",
+      "message": "chained_bezier smooth"
+    },
+    {
+      "timestamp": 20.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "movement": "chained_bezier",
+      "path": [
+        [0.0, 0.2],
+        [0.8, 0.25],
+        [0.2, 0.5],
+        [0.8, 0.75],
+        [0.5, 1.0]
+      ],
+      "duration": 10,
+      "smooth": true,
+      "tension": 0.6
+    },
+    {
+      "timestamp": 30.0,
+      "type": "message",
+      "message": "catmull_rom"
+    },
+    {
+      "timestamp": 31.0,
+      "type": "spawn_enemy",
+      "enemy_type": "basic_soldier",
+      "movement": "catmull_rom",
+      "waypoints": [
+        [0.3, 0.0],
+        [0.7, 0.2],
+        [0.3, 0.4],
+        [0.7, 0.6],
+        [0.3, 0.8],
+        [0.5, 1.0]
+      ],
+      "duration": 10,
+      "tension": 0.5
     }
   ],
   "victory_conditions": {}

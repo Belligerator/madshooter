@@ -34,4 +34,9 @@ class LevelEvent {
     }
     return result;
   }
+
+  @override
+  String toString() {
+    return 'LevelEvent{timestamp: $timestamp, type: $type}';
+  }
 }
