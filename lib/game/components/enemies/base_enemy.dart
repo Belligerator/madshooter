@@ -28,9 +28,10 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   double healthBarY; // Y position offset for health bar (from sprite center)
   double? spawnXPercent; // Optional: 0.0-1.0 percentage of road width
   double spawnYOffset; // Optional: Offset for Y spawn position (negative moves up)
-  int dropUpgradePoints; // Number of UP to drop when destroyed
+  int dropUpgradePoints; // Number of UP to drop when destroyed (legacy, use groupId instead)
   bool destroyedOnPlayerCollision; // Can enemy be destroyed on collision (false for bosses)
   MovementBehavior? movementBehavior; // Optional choreography movement
+  String? groupId; // Group ID for conditional drops - UP only drops when all group members killed
 
   // Sprite configuration (to be provided by subclasses)
   String spritePath;
@@ -172,6 +173,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     // Remove enemy when it goes off-screen
     // When it crosses the bottom threshold, also count as escape
     if (position.y > game.gameHeight + size.y / 2 + outOfBoundsThreshold) {
+      _onEscaped();
       removeFromParent();
     }
   }
@@ -179,18 +181,25 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   // Can be overridden by subclasses for different speeds
   double getSpeed() => baseSpeed;
 
+  // Called when enemy escapes (leaves screen without being killed)
+  void _onEscaped() {
+    if (groupId != null) {
+      game.levelManager.onEnemyGroupMemberEscaped(groupId!);
+    }
+  }
+
   /// Activate enemy for spawning (used by object pool)
   /// Resets runtime state and configures spawn parameters
   void activate({
     double? spawnXPercent,
     double spawnYOffset = 0.0,
-    int dropUpgradePoints = 0,
+    String? groupId,
     MovementBehavior? movementBehavior,
   }) {
     // Update spawn parameters
     this.spawnXPercent = spawnXPercent;
     this.spawnYOffset = spawnYOffset;
-    this.dropUpgradePoints = dropUpgradePoints;
+    this.groupId = groupId;
     this.movementBehavior = movementBehavior;
 
     // Reset runtime state
@@ -222,6 +231,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   void deactivate() {
     // Clear movement behavior to allow garbage collection
     movementBehavior = null;
+    groupId = null;
   }
 
   @override
@@ -253,8 +263,13 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     // Notify game about kill
     game.onSoldierKilled();
 
-    // Spawn upgrade points if configured
-    _spawnUpgradePoints();
+    // Notify group about kill (group handles UP drops)
+    if (groupId != null) {
+      game.levelManager.onEnemyGroupMemberKilled(groupId!, position.clone());
+    } else {
+      // Legacy: spawn UP directly for non-grouped enemies (e.g., barrels)
+      _spawnUpgradePoints();
+    }
   }
 
   void _spawnUpgradePoints() {

@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:math';
+import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
@@ -10,6 +11,7 @@ import '../components/barrel.dart';
 import 'level_data.dart';
 import 'level_event.dart';
 import 'level_state.dart';
+import 'enemy_group.dart';
 
 class LevelManager {
   final ShootingGame gameRef;
@@ -26,6 +28,10 @@ class LevelManager {
   int totalEnemiesSpawned = 0;
   int _pendingSpawns = 0;
   bool _playerDead = false; // Track if player has died
+
+  // Enemy group tracking for conditional drops
+  final Map<String, EnemyGroup> _activeGroups = {};
+  int _groupIdCounter = 0;
 
   LevelManager(this.gameRef);
 
@@ -117,13 +123,24 @@ class LevelManager {
     }
   }
 
+  String _generateGroupId() => 'group_${_groupIdCounter++}';
+
   void _spawnEnemyEvent(Map<String, dynamic> params, double? spawnX) {
-    final enemyType = params['enemy_type'] as String;
+    final enemyType = params['enemy_type'] as String? ?? 'basic_soldier';
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
     final dropUp = params['drop_up'] as int? ?? 0;
     final spawnInterval = (params['spawn_interval'] as num?)?.toDouble() ?? 1;
     final random = Random();
+
+    // Create enemy group for this spawn event
+    final groupId = _generateGroupId();
+    _activeGroups[groupId] = EnemyGroup(
+      groupId: groupId,
+      totalCount: count,
+      dropUpgradePoints: dropUp,
+      gameRef: gameRef,
+    );
 
     // Increment pending spawns for the total count of enemies to be spawned
     _pendingSpawns += count;
@@ -152,7 +169,7 @@ class LevelManager {
             final enemy = gameRef.basicSoldierPool.acquire(
               spawnXPercent: spawnX,
               spawnYOffset: yOffset,
-              dropUpgradePoints: dropUp,
+              groupId: groupId,
               movementBehavior: movementBehavior,
             );
             gameRef.trackEnemy(enemy);
@@ -162,13 +179,13 @@ class LevelManager {
             final enemy = gameRef.heavySoldierPool.acquire(
               spawnXPercent: spawnX,
               spawnYOffset: yOffset,
-              dropUpgradePoints: dropUp,
+              groupId: groupId,
               movementBehavior: movementBehavior,
             );
             gameRef.trackEnemy(enemy);
             break;
         }
-        
+
         _pendingSpawns--; // Decrement after successful spawn
       }
 
@@ -274,6 +291,24 @@ class LevelManager {
     totalEnemiesSpawned = 0;
     _pendingSpawns = 0;
     _playerDead = false;
+    _activeGroups.clear();
+    _groupIdCounter = 0;
+  }
+
+  // Called by enemies when killed - notifies their group
+  void onEnemyGroupMemberKilled(String groupId, Vector2 position) {
+    _activeGroups[groupId]?.onEnemyKilled(position);
+    _cleanupCompletedGroups();
+  }
+
+  // Called by enemies when they escape (leave screen)
+  void onEnemyGroupMemberEscaped(String groupId) {
+    _activeGroups[groupId]?.onEnemyEscaped();
+    _cleanupCompletedGroups();
+  }
+
+  void _cleanupCompletedGroups() {
+    _activeGroups.removeWhere((id, group) => group.isComplete);
   }
 
   void _applyStartingConditions() {

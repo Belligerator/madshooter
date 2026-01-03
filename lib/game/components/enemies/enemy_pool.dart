@@ -20,7 +20,7 @@ class EnemyPool<T extends BaseEnemy> {
   T acquire({
     double? spawnXPercent,
     double spawnYOffset = 0.0,
-    int dropUpgradePoints = 0,
+    String? groupId,
     MovementBehavior? movementBehavior,
   }) {
     final T enemy;
@@ -42,7 +42,7 @@ class EnemyPool<T extends BaseEnemy> {
     enemy.activate(
       spawnXPercent: spawnXPercent,
       spawnYOffset: spawnYOffset,
-      dropUpgradePoints: dropUpgradePoints,
+      groupId: groupId,
       movementBehavior: movementBehavior,
     );
 
