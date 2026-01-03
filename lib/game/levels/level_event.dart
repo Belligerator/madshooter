@@ -2,12 +2,14 @@ class LevelEvent {
   final double timestamp;
   final String type;
   final double? spawnX; // Optional: 0.0-1.0 percentage of road width
+  final bool ignore; // If true, skip this event (for testing)
   final Map<String, dynamic> parameters;
 
   LevelEvent({
     required this.timestamp,
     required this.type,
     this.spawnX,
+    this.ignore = false,
     required this.parameters,
   });
 
@@ -16,11 +18,13 @@ class LevelEvent {
     parameters.remove('timestamp');
     parameters.remove('type');
     parameters.remove('spawn_x');
+    parameters.remove('ignore');
 
     return LevelEvent(
       timestamp: (json['timestamp'] as num).toDouble(),
       type: json['type'] as String,
       spawnX: json['spawn_x'] != null ? (json['spawn_x'] as num).toDouble() : null,
+      ignore: json['ignore'] as bool? ?? false,
       parameters: parameters,
     );
   }

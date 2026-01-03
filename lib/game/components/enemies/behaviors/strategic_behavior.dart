@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:madshooter/game/components/enemies/behaviors/behavior_factory.dart';
 
 import 'movement_behavior.dart';
 
@@ -57,9 +58,9 @@ class StrategicBehavior extends MovementBehavior {
 
   StrategicBehavior({
     this.strategy = StrategyType.hover,
-    this.targetY = 0.2,
+    this.targetY = defaultTargetY,
     this.approachSpeed = 1,
-    this.continueOnComplete = true,
+    this.continueOnComplete = false,
     this.orbitRadius = 50.0,
     this.orbitSpeed = 1.0,
     this.reactionTime = 2,

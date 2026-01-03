@@ -8,6 +8,8 @@ import 'waypoint_behavior.dart';
 import 'track_player_behavior.dart';
 import 'strategic_behavior.dart';
 
+const defaultTargetY = 0.1;
+
 /// Factory for creating movement behaviors from JSON configuration.
 /// +-----------------+-------------------------------------------------+
 /// | Behavior        | Use Case                                        |
@@ -129,7 +131,7 @@ class BehaviorFactory {
         }
         return StrategicBehavior(
           strategy: strategy,
-          targetY: (json['target_y'] as num?)?.toDouble() ?? 0.2,
+          targetY: (json['target_y'] as num?)?.toDouble() ?? defaultTargetY,
           approachSpeed: (json['approach_speed'] as num?)?.toDouble() ?? 1,
           continueOnComplete: json['continue_on_complete'] as bool? ?? true,
           orbitRadius: (json['orbit_radius'] as num?)?.toDouble() ?? 50.0,

@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
 import '../components/enemies/behaviors/behavior_factory.dart';
+import '../components/enemies/behaviors/movement_behavior.dart';
+import '../components/enemies/bosses/major/tank_boss.dart';
+import '../components/enemies/bosses/mini_boss.dart';
 import '../components/barrel.dart';
 import 'level_data.dart';
 import 'level_event.dart';
@@ -102,7 +105,10 @@ class LevelManager {
 
     // Check if it's time to trigger this event
     if (levelTime >= event.timestamp) {
-      _executeEvent(event);
+      // Skip ignored events (for testing)
+      if (!event.ignore) {
+        _executeEvent(event);
+      }
       currentEventIndex++;
     }
   }
@@ -114,6 +120,15 @@ class LevelManager {
         break;
       case 'spawn_barrel':
         _spawnBarrelEvent(event.parameters, event.spawnX);
+        break;
+      case 'spawn_boss':
+        _spawnMajorBossEvent(event.parameters, event.spawnX);
+        break;
+      case 'spawn_major_boss':
+        _spawnMajorBossEvent(event.parameters, event.spawnX);
+        break;
+      case 'spawn_mini_boss':
+        _spawnMiniBossEvent(event.parameters, event.spawnX);
         break;
       case 'message':
         _showMessageEvent(event.parameters);
@@ -204,6 +219,59 @@ class LevelManager {
     print('Spawned $count $enemyType enemies');
   }
 
+  void _spawnMajorBossEvent(Map<String, dynamic> params, double? spawnX) {
+    final bossType = params['boss_type'] as String? ?? 'tank_boss';
+    
+    // Create boss based on type
+    final boss = _createMajorBoss(bossType);
+    
+    // Set spawn position if provided
+    if (spawnX != null) {
+      boss.spawnXPercent = spawnX;
+    }
+    
+    gameRef.world.add(boss);
+    gameRef.trackEnemy(boss);
+    
+    // Boss counts as an enemy for level completion
+    totalEnemiesSpawned++;
+    
+    print('Spawned Major Boss: $bossType');
+  }
+  
+  /// Factory for creating major bosses by type
+  TankBoss _createMajorBoss(String bossType) {
+    switch (bossType) {
+      case 'tank_boss':
+        return TankBoss();
+      // Add more major bosses here:
+      // case 'speed_boss':
+      //   return SpeedBoss();
+      // case 'summoner_boss':
+      //   return SummonerBoss();
+      default:
+        print('Unknown boss type: $bossType, defaulting to TankBoss');
+        return TankBoss();
+    }
+  }
+  
+  void _spawnMiniBossEvent(Map<String, dynamic> params, double? spawnX) {
+    final boss = MiniBossFactory.fromJson(params);
+    
+    // Set spawn position if provided
+    if (spawnX != null) {
+      boss.spawnXPercent = spawnX;
+    }
+    
+    gameRef.world.add(boss);
+    gameRef.trackEnemy(boss);
+    
+    // Boss counts as an enemy for level completion
+    totalEnemiesSpawned++;
+    
+    print('Spawned Mini Boss');
+  }
+
   void _spawnBarrelEvent(Map<String, dynamic> params, double? spawnX) {
     final barrelTypeString = params['barrel_type'] as String;
     final dropUp = params['drop_up'] as int? ?? 0;
@@ -238,6 +306,41 @@ class LevelManager {
   void _showMessageEvent(Map<String, dynamic> params) {
     final message = params['message'] as String;
     gameRef.showMessage(message);
+  }
+  
+  /// Spawn an enemy directly (used by bosses for spawning minions)
+  /// [enemyType] - 'basic_soldier' or 'heavy_soldier'
+  /// [spawnXPercent] - 0.0-1.0 percentage of screen width
+  /// [spawnYOffset] - Y position offset (can be absolute Y position for minion spawning)
+  /// [behavior] - optional movement behavior
+  void spawnEnemyDirect({
+    required String enemyType,
+    double? spawnXPercent,
+    double spawnYOffset = 0.0,
+    MovementBehavior? behavior,
+  }) {
+    totalEnemiesSpawned++;
+    
+    switch (enemyType) {
+      case 'basic_soldier':
+        final enemy = gameRef.basicSoldierPool.acquire(
+          spawnXPercent: spawnXPercent,
+          spawnYOffset: spawnYOffset,
+          movementBehavior: behavior,
+        );
+        gameRef.trackEnemy(enemy);
+        break;
+      case 'heavy_soldier':
+        final enemy = gameRef.heavySoldierPool.acquire(
+          spawnXPercent: spawnXPercent,
+          spawnYOffset: spawnYOffset,
+          movementBehavior: behavior,
+        );
+        gameRef.trackEnemy(enemy);
+        break;
+      default:
+        print('Unknown enemy type for direct spawn: $enemyType');
+    }
   }
 
   void _checkVictoryConditions() {

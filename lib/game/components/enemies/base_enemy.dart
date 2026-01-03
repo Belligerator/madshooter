@@ -30,6 +30,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   double spawnYOffset; // Optional: Offset for Y spawn position (negative moves up)
   int dropUpgradePoints; // Number of UP to drop when destroyed (legacy, use groupId instead)
   bool destroyedOnPlayerCollision; // Can enemy be destroyed on collision (false for bosses)
+  bool clampToScreenBounds; // Whether to clamp X position to screen bounds
   MovementBehavior? movementBehavior; // Optional choreography movement
   String? groupId; // Group ID for conditional drops - UP only drops when all group members killed
 
@@ -62,6 +63,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     this.spawnYOffset = 0.0,
     this.dropUpgradePoints = 0,
     this.destroyedOnPlayerCollision = true,
+    this.clampToScreenBounds = true,
     this.movementBehavior,
   }) : currentHealth = maxHealth;
 
@@ -71,7 +73,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    // debugMode = true;
+    debugMode = true;
 
     // Use pre-cached sprite if available, otherwise load (fallback)
     sprite = cachedSprite ?? await game.loadSprite(spritePath);
@@ -162,7 +164,9 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     }
 
     // Clamp x within screen bounds (using center anchor)
-    position.x = position.x.clamp(size.x / 2, game.gameWidth - size.x / 2);
+    if (clampToScreenBounds) {
+      position.x = position.x.clamp(size.x / 2, game.gameWidth - size.x / 2);
+    }
 
     // Update priority only when Y changes by more than 20 pixels (optimization)
     if ((position.y - _lastPriorityY).abs() > 10) {

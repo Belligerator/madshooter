@@ -11,9 +11,14 @@ class TrackPlayerBehavior extends MovementBehavior {
   /// Maximum horizontal speed multiplier
   final double maxHorizontalSpeedMultiplier;
 
+  /// Optional: Target Y position in normalized coordinates (0-1)
+  /// If set, the enemy will maintain this Y position instead of descending
+  final double? targetY;
+
   TrackPlayerBehavior({
     this.reactionSpeed = 0.5,
     this.maxHorizontalSpeedMultiplier = 2.0,
+    this.targetY,
   });
 
   @override
@@ -49,6 +54,20 @@ class TrackPlayerBehavior extends MovementBehavior {
       }
     }
 
-    return Vector2(horizontalVelocity, baseSpeed);
+    // Calculate vertical velocity
+    double verticalVelocity = baseSpeed;
+    if (targetY != null) {
+      // Maintain target Y position instead of descending
+      final targetYScreen = targetY! * screenHeight;
+      final dy = targetYScreen - currentPosition.y;
+      // Smoothly move towards target Y, or stay put if close enough
+      if (dy.abs() < 5) {
+        verticalVelocity = 0;
+      } else {
+        verticalVelocity = dy.clamp(-baseSpeed * 2, baseSpeed * 2);
+      }
+    }
+
+    return Vector2(horizontalVelocity, verticalVelocity);
   }
 }

@@ -1,0 +1,205 @@
+{
+  "levelId": 5,
+  "name": "Boss Fight",
+  "duration": 120,
+  "description": "Defeat the Boss!",
+  "starting_conditions": {
+    "bullet_size_multiplier": 1.0,
+    "additional_fire_rate": 0.0,
+    "ally_count": 0
+  },
+  "events": [
+    {
+      "timestamp": 1.0,
+      "type": "spawn_enemy",
+      "enemy_type": "heavy_soldier",
+      "count": 1,
+      "drop_up": 3,
+      "ignore": true
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_major_boss",
+      "boss_type": "tank_boss",
+      "spawn_x": 0.5,
+      "ignore": false,
+      "_comment": "Major boss - TankBoss with 3 phases: hover->track->orbit, single->single->spread"
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "ignore": true
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 400,
+      "width": 130,
+      "drop_up": 4,
+      "ignore": true,
+      "_comment": "Mini boss - Spread shot pattern",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.2,
+          "shooting": "spread",
+          "bullet_count": 5,
+          "spread_angle": 10,
+          "fire_interval": 1.5
+        }
+      ]
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 400,
+      "width": 130,
+      "drop_up": 4,
+      "ignore": true,
+      "_comment": "Mini boss - Burst shot pattern (3 rapid shots)",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.2,
+          "shooting": "burst",
+          "bullet_count": 3,
+          "delay": 0.5,
+          "fire_interval": 3.0
+        }
+      ]
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 1500,
+      "width": 200,
+      "drop_up": 5,
+      "ignore": true,
+      "_comment": "Mini boss - Radial shot pattern (8 bullets in circle)",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.3,
+          "shooting": "radial",
+          "bullet_count": 50,
+          "fire_interval": 2.5
+        }
+      ]
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 400,
+      "width": 130,
+      "drop_up": 4,
+      "ignore": true,
+      "_comment": "Mini boss - Aimed shot pattern (targets player)",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.1,
+          "shooting": "aimed",
+          "accuracy": 0,
+          "fire_interval": 1.2
+        }
+      ]
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 600,
+      "width": 150,
+      "drop_up": 5,
+      "ignore": true,
+      "_comment": "Mini boss - 2 phases: hover+single -> track_player+spread",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.2,
+          "shooting": "single",
+          "fire_interval": 2.0
+        },
+        {
+          "threshold": 0.5,
+          "movement": "track_player",
+          "target_y": 0.2,
+          "reaction_speed": 0.1,
+          "shooting": "spread",
+          "bullet_count": 3,
+          "fire_interval": 1.5
+        }
+      ]
+    },
+
+    {
+      "timestamp": 2.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 800,
+      "width": 160,
+      "drop_up": 6,
+      "ignore": true,
+      "_comment": "Mini boss - 3 phases: hover+single -> track+burst -> orbit+radial",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.2,
+          "shooting": "single",
+          "fire_interval": 2.0
+        },
+        {
+          "threshold": 0.66,
+          "movement": "track_player",
+          "target_y": 0.2,
+          "reaction_speed": 0.15,
+          "shooting": "burst",
+          "bullet_count": 3,
+          "delay": 0.2,
+          "fire_interval": 1.8
+        },
+        {
+          "threshold": 0.33,
+          "movement": "strategic",
+          "strategy": "orbit",
+          "target_y": 0.25,
+          "orbit_radius": 150,
+          "orbit_speed": 0.8,
+          "shooting": "radial",
+          "bullet_count": 6,
+          "fire_interval": 2.0
+        }
+      ]
+    }
+  ],
+  "victory_conditions": {}
+}

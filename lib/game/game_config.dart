@@ -8,7 +8,7 @@ class GameConfig {
   static const double baseFireRate = 1.0;              // Shots per second (instead of seconds between shots)
 
   // Level configuration
-  static const int maxLevel = 4; // Maximum number of levels available
+  static const int maxLevel = 5; // Maximum number of levels available
 
 // Future upgrade types can be added here
 // static const double maxBulletSpeedMultiplier = 2.0;
