@@ -16,6 +16,9 @@ class CatmullRomBehavior extends MovementBehavior {
   /// Default 0.5 for standard Catmull-Rom
   final double tension;
 
+  /// Whether to continue falling straight down after completing the path
+  final bool continueOnComplete;
+
   /// Progress along the entire path (0-1)
   double _progress = 0;
 
@@ -32,6 +35,7 @@ class CatmullRomBehavior extends MovementBehavior {
     required this.waypoints,
     this.duration = 4.0,
     this.tension = 0.5,
+    this.continueOnComplete = true,
   }) : assert(waypoints.length >= 2) {
     _points = waypoints.map((p) => Vector2(p[0], p[1])).toList();
     _segmentCount = _points.length - 1;
@@ -40,15 +44,16 @@ class CatmullRomBehavior extends MovementBehavior {
   @override
   Vector2 getVelocity(Vector2 currentPosition, double dt, double baseSpeed) {
     if (_isComplete) {
-      return Vector2(0, baseSpeed); // Fall straight down after completion
+      // After path complete: fall down or stop
+      return Vector2(0, continueOnComplete ? baseSpeed : 0);
     }
 
     // Guard against zero/tiny dt
     if (dt <= 0.0001) {
-      return Vector2(0, baseSpeed);
+      return Vector2(0, 0);
     }
 
-    // Increment progress
+    // Time-based progress
     _progress += dt / duration;
 
     if (_progress >= 1.0) {
@@ -66,11 +71,10 @@ class CatmullRomBehavior extends MovementBehavior {
 
     final targetPosition = Vector2(targetX, targetY);
 
-    // Calculate velocity to reach target
+    // Calculate velocity to reach target (both X and Y)
     final velocity = (targetPosition - currentPosition) / dt;
 
-    // X from spline, Y constant (same pattern as other behaviors)
-    return Vector2(velocity.x, baseSpeed);
+    return velocity;
   }
 
   /// Evaluate the Catmull-Rom spline at global progress t (0-1)
@@ -99,23 +103,23 @@ class CatmullRomBehavior extends MovementBehavior {
     return _catmullRom(p0, p1, p2, p3, localT);
   }
 
-  /// Standard Catmull-Rom spline interpolation with tension
+  /// Standard Catmull-Rom spline interpolation
+  /// Tension affects curve tightness: 0 = tight, 1 = loose
   Vector2 _catmullRom(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, double t) {
     final t2 = t * t;
     final t3 = t2 * t;
 
-    // Tension factor (0.5 = standard Catmull-Rom)
-    final s = (1 - tension) / 2;
+    // Standard Catmull-Rom uses 0.5 to ensure curve passes through control points
+    // Tension only affects tangent magnitude, not the base interpolation
+    final tau = 0.5 * (1 - tension); // tau = 0.5 when tension = 0 (standard)
 
     return Vector2(
-      s * ((2 * p1.x) +
-          (-p0.x + p2.x) * t +
-          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
-          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
-      s * ((2 * p1.y) +
-          (-p0.y + p2.y) * t +
-          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
-          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
+      p1.x + tau * (-p0.x + p2.x) * t +
+          (2 * tau * p0.x + (tau - 3) * p1.x + (3 - 2 * tau) * p2.x - tau * p3.x) * t2 +
+          (-tau * p0.x + (2 - tau) * p1.x + (tau - 2) * p2.x + tau * p3.x) * t3,
+      p1.y + tau * (-p0.y + p2.y) * t +
+          (2 * tau * p0.y + (tau - 3) * p1.y + (3 - 2 * tau) * p2.y - tau * p3.y) * t2 +
+          (-tau * p0.y + (2 - tau) * p1.y + (tau - 2) * p2.y + tau * p3.y) * t3,
     );
   }
 

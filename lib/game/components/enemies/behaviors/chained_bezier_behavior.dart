@@ -35,7 +35,7 @@ class ChainedBezierBehavior extends MovementBehavior {
   ChainedBezierBehavior({
     required this.points,
     this.duration = 4.0,
-    this.smooth = false,
+    this.smooth = true,
     this.tension = 0.5,
   }) : assert(points.length >= 3) {
     _parsePoints();
@@ -101,29 +101,25 @@ class ChainedBezierBehavior extends MovementBehavior {
       return Vector2(0, baseSpeed);
     }
 
-    // Increment progress
-    _progress += dt / duration;
+    // Progress based on Y position (0 = top, 1 = bottom of screen)
+    _progress = (currentPosition.y / screenHeight).clamp(0.0, 1.0);
 
     if (_progress >= 1.0) {
-      _progress = 1.0;
       _isComplete = true;
     }
 
-    // Calculate target position on chained bezier path
+    // Calculate target X position on chained bezier path
     final targetNormalized = _evaluateChainedBezier(_progress);
 
-    // Convert normalized to screen coordinates
+    // Convert normalized X to screen coordinates
     final targetX =
         roadLeftBound + targetNormalized.x * (roadRightBound - roadLeftBound);
-    final targetY = targetNormalized.y * screenHeight;
 
-    final targetPosition = Vector2(targetX, targetY);
+    // Calculate X velocity to reach target
+    final velocityX = (targetX - currentPosition.x) / dt;
 
-    // Calculate velocity to reach target
-    final velocity = (targetPosition - currentPosition) / dt;
-
-    // X from bezier, Y constant (same pattern as BezierBehavior)
-    return Vector2(velocity.x, baseSpeed);
+    // X from bezier, Y constant baseSpeed
+    return Vector2(velocityX, baseSpeed);
   }
 
   /// Evaluate the chained bezier at global progress t (0-1)

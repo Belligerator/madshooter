@@ -89,6 +89,7 @@ class BehaviorFactory {
           waypoints: waypoints,
           duration: (json['duration'] as num?)?.toDouble() ?? 4.0,
           tension: (json['tension'] as num?)?.toDouble() ?? 0.5,
+          continueOnComplete: json['continue_on_complete'] as bool? ?? true,
         );
 
       case 'waypoints':
