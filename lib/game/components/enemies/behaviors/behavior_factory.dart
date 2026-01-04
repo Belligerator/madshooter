@@ -7,6 +7,7 @@ import 'catmull_rom_behavior.dart';
 import 'waypoint_behavior.dart';
 import 'track_player_behavior.dart';
 import 'strategic_behavior.dart';
+import 'random_wander_behavior.dart';
 
 const defaultTargetY = 0.1;
 
@@ -22,6 +23,7 @@ const defaultTargetY = 0.1;
 /// | catmull_rom     | Smooth curve through waypoints                  |
 /// | track_player    | Adaptive tracking of player position            |
 /// | strategic       | Complex strategies (flanking, orbiting, etc.)   |
+/// | random_wander   | Random point-to-point within boundaries         |
 /// +-----------------+-------------------------------------------------+
 class BehaviorFactory {
   /// Creates a movement behavior from JSON event data.
@@ -136,6 +138,18 @@ class BehaviorFactory {
           continueOnComplete: json['continue_on_complete'] as bool? ?? true,
           orbitRadius: (json['orbit_radius'] as num?)?.toDouble() ?? 50.0,
           orbitSpeed: (json['orbit_speed'] as num?)?.toDouble() ?? 1.0,
+        );
+
+      case 'random_wander':
+        final targetY = (json['target_y'] as num?)?.toDouble() ?? defaultTargetY;
+
+        return RandomWanderBehavior(
+          targetY: targetY,
+          interval: (json['interval'] as num?)?.toDouble() ?? 3.0,
+          minX: (json['min_x'] as num?)?.toDouble() ?? 0.0,
+          maxX: (json['max_x'] as num?)?.toDouble() ?? 1.0,
+          minY: (json['min_y'] as num?)?.toDouble() ?? 0.0,
+          maxY: (json['max_y'] as num?)?.toDouble() ?? targetY,
         );
 
       default:

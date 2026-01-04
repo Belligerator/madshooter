@@ -211,7 +211,7 @@
       "movement": "strategic",
       "strategy": "hover",
       "target_y": 0.25,
-      "ignore": false,
+      "ignore": true,
       "_comment": "Summoner Soldier - Regular enemy with spawn_minions ability",
       "abilities": [
         {
@@ -257,6 +257,33 @@
               "max_total_enemies": 4
             }
           ]
+        }
+      ]
+    },
+    {
+      "timestamp": 0.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 600,
+      "width": 140,
+      "drop_up": 5,
+      "ignore": false,
+      "_comment": "Mini boss with random_wander - wanders in larger vertical area",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "random_wander",
+          "target_y": 0.2,
+          "interval": 5,
+          "min_x": 0.0,
+          "max_x": 1.0,
+          "min_y": 0.0,
+          "max_y": 0.2,
+          "shooting": "spread",
+          "bullet_count": 5,
+          "spread_angle": 15,
+          "fire_interval": 2.0
         }
       ]
     }
