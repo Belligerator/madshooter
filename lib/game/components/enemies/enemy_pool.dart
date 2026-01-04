@@ -1,5 +1,5 @@
 import 'package:flame/components.dart';
-import 'base_enemy.dart';
+import 'enemies/base_enemy.dart';
 import 'behaviors/movement_behavior.dart';
 import 'bosses/abilities/boss_ability.dart';
 

@@ -1,4 +1,4 @@
-import '../../base_enemy.dart';
+import '../../enemies/base_enemy.dart';
 
 /// Abstract base class for enemy abilities
 /// Works for all enemy types: regular enemies, mini-bosses, and major bosses

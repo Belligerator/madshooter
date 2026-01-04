@@ -6,7 +6,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
-import '../components/enemies/base_enemy.dart';
+import '../components/enemies/enemies/base_enemy.dart';
 import '../components/enemies/behaviors/behavior_factory.dart';
 import '../components/enemies/behaviors/movement_behavior.dart';
 import '../components/enemies/bosses/major/tank_boss.dart';
@@ -156,7 +156,7 @@ class LevelManager {
   }
 
   void _spawnEnemyEvent(Map<String, dynamic> params, double? spawnX) {
-    final enemyType = params['enemy_type'] as String? ?? 'basic_soldier';
+    final enemyType = params['enemy_type'] as String? ?? 'basic_enemy';
     final count = params['count'] as int? ?? 1;
     final spawnPattern = params['spawn_pattern'] as String? ?? 'single';
     final dropUp = params['drop_up'] as int? ?? 0;
@@ -197,7 +197,7 @@ class LevelManager {
 
         totalEnemiesSpawned++; // Track total enemies for star calculation
         switch (enemyType) {
-          case 'basic_soldier':
+          case 'basic_enemy':
             // Use object pool for better performance
             final enemy = gameRef.basicSoldierPool.acquire(
               spawnXPercent: spawnX,
@@ -208,7 +208,7 @@ class LevelManager {
             );
             gameRef.trackEnemy(enemy);
             break;
-          case 'heavy_soldier':
+          case 'tank_enemy':
             // Use object pool for better performance
             final enemy = gameRef.heavySoldierPool.acquire(
               spawnXPercent: spawnX,
@@ -219,7 +219,7 @@ class LevelManager {
             );
             gameRef.trackEnemy(enemy);
             break;
-          case 'summoner_soldier':
+          case 'summoner_enemy':
             // Use object pool for better performance
             final enemy = gameRef.summonerSoldierPool.acquire(
               spawnXPercent: spawnX,
@@ -340,7 +340,7 @@ class LevelManager {
   }
   
   /// Spawn an enemy directly (used by abilities for spawning minions)
-  /// [enemyType] - 'basic_soldier', 'heavy_soldier', or 'summoner_soldier'
+  /// [enemyType] - 'basic_enemy', 'tank_enemy', or 'summoner_enemy'
   /// [spawnXPercent] - 0.0-1.0 percentage of screen width
   /// [spawnYOffset] - Y position offset (can be absolute Y position for minion spawning)
   /// [behavior] - optional movement behavior
@@ -362,7 +362,7 @@ class LevelManager {
     }
 
     switch (enemyType) {
-      case 'basic_soldier':
+      case 'basic_enemy':
         final enemy = gameRef.basicSoldierPool.acquire(
           spawnXPercent: spawnXPercent,
           spawnYOffset: spawnYOffset,
@@ -372,7 +372,7 @@ class LevelManager {
         );
         gameRef.trackEnemy(enemy);
         return enemy;
-      case 'heavy_soldier':
+      case 'tank_enemy':
         final enemy = gameRef.heavySoldierPool.acquire(
           spawnXPercent: spawnXPercent,
           spawnYOffset: spawnYOffset,
@@ -382,7 +382,7 @@ class LevelManager {
         );
         gameRef.trackEnemy(enemy);
         return enemy;
-      case 'summoner_soldier':
+      case 'summoner_enemy':
         // Do not allow recursive minion spawning
       default:
         print('Unknown enemy type for direct spawn: $enemyType');

@@ -4,11 +4,11 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
-import '../../shooting_game.dart';
-import '../upgrade_point.dart';
-import '../explosion_effect.dart';
-import 'behaviors/movement_behavior.dart';
-import 'bosses/abilities/boss_ability.dart';
+import '../../../shooting_game.dart';
+import '../../upgrade_point.dart';
+import '../../explosion_effect.dart';
+import '../behaviors/movement_behavior.dart';
+import '../bosses/abilities/boss_ability.dart';
 
 abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double baseSpeed = 30.0;
@@ -75,7 +75,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    // debugMode = true;
+    debugMode = true;
 
     // Use pre-cached sprite if available, otherwise load (fallback)
     sprite = cachedSprite ?? await game.loadSprite(spritePath);

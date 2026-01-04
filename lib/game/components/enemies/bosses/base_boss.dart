@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-import '../base_enemy.dart';
+import '../enemies/base_enemy.dart';
 import '../behaviors/movement_behavior.dart';
 import '../../shooting/shooting_pattern.dart';
 import '../../shooting/patterns/single_shot_pattern.dart';
@@ -51,7 +51,7 @@ abstract class BaseBoss extends BaseEnemy {
   ({double? minX, double? maxX, double? minY, double? maxY}) get positionBounds => (
     minX: 0, // 50% visible on left
     maxX: game.gameWidth, // 50% visible on right
-    minY: 0, // 50% visible on top
+    minY: -size.y, // can go fully off-screen at top - good for spawning
     maxY: game.gameHeight * 0.70, // Cannot go below y=0.8
   );
 
@@ -99,7 +99,7 @@ abstract class BaseBoss extends BaseEnemy {
 
     final minX = bounds.minX ?? 0;
     final maxX = bounds.maxX ?? game.gameWidth;
-    final minY = bounds.minY ?? 0;
+    final minY = bounds.minY ?? -size.y;
     final maxY = bounds.maxY ?? game.gameHeight;
 
     position.x = position.x.clamp(minX, maxX);

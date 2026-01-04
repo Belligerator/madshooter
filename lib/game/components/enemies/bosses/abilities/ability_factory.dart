@@ -8,7 +8,7 @@ class AbilityFactory {
     switch (type) {
       case 'spawn_minions':
         return SpawnMinionsAbility(
-          enemyType: json['enemy_type'] as String? ?? 'basic_soldier',
+          enemyType: json['enemy_type'] as String? ?? 'basic_enemy',
           count: json['count'] as int? ?? 3,
           interval: (json['interval'] as num?)?.toDouble() ?? 0.0,
           spreadRadius: (json['spread_radius'] as num?)?.toDouble() ?? 100.0,

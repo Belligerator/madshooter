@@ -10,11 +10,12 @@
   },
   "events": [
     {
-      "timestamp": 1.0,
+      "timestamp": 2.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "drop_up": 3,
+      "spawn_x": 0.1,
       "ignore": true
     },
 
@@ -204,19 +205,19 @@
     {
       "timestamp": 5.0,
       "type": "spawn_enemy",
-      "enemy_type": "summoner_soldier",
+      "enemy_type": "summoner_enemy",
       "count": 1,
       "spawn_x": 0.3,
       "drop_up": 2,
       "movement": "strategic",
       "strategy": "hover",
       "target_y": 0.25,
-      "ignore": true,
+      "ignore": false,
       "_comment": "Summoner Soldier - Regular enemy with spawn_minions ability",
       "abilities": [
         {
           "type": "spawn_minions",
-          "enemy_type": "basic_soldier",
+          "enemy_type": "basic_enemy",
           "count": 2,
           "interval": 5.0,
           "spread_radius": 80.0,
@@ -249,7 +250,7 @@
           "abilities": [
             {
               "type": "spawn_minions",
-              "enemy_type": "summoner_soldier",
+              "enemy_type": "summoner_enemy",
               "count": 3,
               "interval": 3.0,
               "spread_radius": 100.0,
@@ -261,14 +262,14 @@
       ]
     },
     {
-      "timestamp": 0.0,
+      "timestamp": 2.0,
       "type": "spawn_mini_boss",
       "spawn_x": 0.5,
       "sprite": "enemies/Enemy_Tank_Base.webp",
       "health": 600,
       "width": 140,
       "drop_up": 5,
-      "ignore": false,
+      "ignore": true,
       "_comment": "Mini boss with random_wander - wanders in larger vertical area",
       "phases": [
         {

@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flame/components.dart';
 
-import '../../base_enemy.dart';
+import '../../enemies/base_enemy.dart';
 import '../../behaviors/spawn_animation_behavior.dart';
 import 'boss_ability.dart';
 

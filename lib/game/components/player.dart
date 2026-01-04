@@ -6,7 +6,7 @@ import 'bullet.dart';
 import 'bullet_emitter.dart';
 import 'thruster_effect.dart';
 import 'upgrade_point.dart';
-import 'enemies/base_enemy.dart';
+import 'enemies/enemies/base_enemy.dart';
 
 class Player extends SpriteComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double speed = 200.0;

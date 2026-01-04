@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:madshooter/game/components/enemies/behaviors/behavior_factory.dart';
+import 'package:madshooter/game/components/enemies/sprites.dart';
 
 import '../../behaviors/strategic_behavior.dart';
 import '../../behaviors/track_player_behavior.dart';
@@ -34,7 +35,7 @@ class TankBoss extends BaseBoss {
   TankBoss()
       : super(
           maxHealth: 2000,
-          spritePath: 'enemies/Enemy_Tank_Base.webp',
+          spritePath: EnemySprites.tankEnemy,
           baseWidth: _baseWidth,
           baseHeight: _baseHeight,
           healthBarWidth: scaledHitboxWidth,

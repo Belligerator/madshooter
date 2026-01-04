@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import '../shooting_game.dart';
-import 'enemies/base_enemy.dart';
+import 'enemies/enemies/base_enemy.dart';
 import 'barrel.dart';
 
 class Bullet extends SpriteAnimationComponent with HasGameReference<ShootingGame>, CollisionCallbacks {

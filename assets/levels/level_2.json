@@ -17,7 +17,7 @@
     {
       "timestamp": 3.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "spawn_x": 0.3,
       "movement": "sine",
@@ -28,7 +28,7 @@
     {
       "timestamp": 4.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "spawn_x": 0.7,
       "movement": "sine",
@@ -39,7 +39,7 @@
     {
       "timestamp": 8.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "spawn_x": 0.2,
       "movement": "zigzag",
@@ -49,7 +49,7 @@
     {
       "timestamp": 9.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "spawn_x": 0.8,
       "movement": "zigzag",
@@ -71,7 +71,7 @@
     {
       "timestamp": 20.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "movement": "bezier",
       "path": [
@@ -86,7 +86,7 @@
     {
       "timestamp": 23.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "movement": "bezier",
       "path": [
@@ -101,7 +101,7 @@
     {
       "timestamp": 30.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "movement": "waypoints",
       "waypoints": [
@@ -115,7 +115,7 @@
     {
       "timestamp": 32.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 1,
       "movement": "waypoints",
       "waypoints": [
@@ -141,7 +141,7 @@
     {
       "timestamp": 45.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "movement": "track_player",
       "reaction_speed": 0.6,
@@ -150,7 +150,7 @@
     {
       "timestamp": 50.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "movement": "strategic",
       "strategy": "hover",
@@ -160,7 +160,7 @@
     {
       "timestamp": 58.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "movement": "strategic",
       "strategy": "flank",
@@ -170,7 +170,7 @@
     {
       "timestamp": 65.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "movement": "strategic",
       "strategy": "orbit",
@@ -187,7 +187,7 @@
     {
       "timestamp": 75.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 2,
       "movement": "sine",
       "amplitude": 60,
@@ -196,7 +196,7 @@
     {
       "timestamp": 77.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 2,
       "movement": "zigzag",
       "segment_length": 60
@@ -204,7 +204,7 @@
     {
       "timestamp": 80.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 1,
       "movement": "track_player",
       "reaction_speed": 0.8,

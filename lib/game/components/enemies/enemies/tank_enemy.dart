@@ -1,8 +1,9 @@
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:madshooter/game/components/enemies/sprites.dart';
 import 'base_enemy.dart';
 
-class HeavySoldier extends BaseEnemy {
+class TankEnemy extends BaseEnemy {
   // Original sprite dimensions (from image file)
   static const double _originalWidth = 256.0;
   static const double _originalHeight = 256.0;
@@ -22,7 +23,7 @@ class HeavySoldier extends BaseEnemy {
   static double get scaledHitboxWidth => _hitboxWidth * displayScale;
   static double get scaledHitboxHeight => _hitboxHeight * displayScale;
 
-  HeavySoldier({
+  TankEnemy({
     super.cachedSprite,
     super.spawnXPercent,
     super.spawnYOffset,
@@ -31,7 +32,7 @@ class HeavySoldier extends BaseEnemy {
     super.movementBehavior,
   }) : super(
     maxHealth: 500,
-    spritePath: 'enemies/Enemy_Tank_Base.webp',
+    spritePath: EnemySprites.tankEnemy,
     baseWidth: _baseWidth,
     baseHeight: _baseHeight,
     healthBarWidth: scaledHitboxWidth,

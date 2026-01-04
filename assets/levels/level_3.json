@@ -17,7 +17,7 @@
     {
       "timestamp": 2.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 8,
       "spawn_pattern": "spread",
       "drop_up": 1
@@ -25,7 +25,7 @@
     {
       "timestamp": 6.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 4,
       "spawn_pattern": "spread",
       "drop_up": 1
@@ -33,7 +33,7 @@
     {
       "timestamp": 11.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 8,
       "spawn_pattern": "spread"
     },
@@ -52,7 +52,7 @@
     {
       "timestamp": 19.0,
       "type": "spawn_enemy",
-      "enemy_type": "summoner_soldier",
+      "enemy_type": "summoner_enemy",
       "count": 1,
       "spawn_x": 0.3,
       "drop_up": 2,
@@ -64,7 +64,7 @@
       "abilities": [
         {
           "type": "spawn_minions",
-          "enemy_type": "basic_soldier",
+          "enemy_type": "basic_enemy",
           "count": 2,
           "interval": 5.0,
           "spread_radius": 80.0,
@@ -76,14 +76,14 @@
     {
       "timestamp": 20.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 5,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 22.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 10,
       "spawn_pattern": "spread",
       "drop_up": 1
@@ -91,7 +91,7 @@
     {
       "timestamp": 27.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 6,
       "spawn_pattern": "spread"
     },
@@ -128,21 +128,21 @@
     {
       "timestamp": 32.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 10,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 38.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 12,
       "spawn_pattern": "spread"
     },
     {
       "timestamp": 43.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 6,
       "spawn_pattern": "spread",
       "drop_up": 1
@@ -150,7 +150,7 @@
     {
       "timestamp": 48.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 10,
       "spawn_pattern": "spread"
     },
@@ -162,7 +162,7 @@
     {
       "timestamp": 55.0,
       "type": "spawn_enemy",
-      "enemy_type": "basic_soldier",
+      "enemy_type": "basic_enemy",
       "count": 10,
       "spawn_pattern": "line",
       "spawn_interval": 0.5,
@@ -174,7 +174,7 @@
     {
       "timestamp": 65.0,
       "type": "spawn_enemy",
-      "enemy_type": "heavy_soldier",
+      "enemy_type": "tank_enemy",
       "count": 10,
       "spawn_pattern": "spread",
       "drop_up": 2
