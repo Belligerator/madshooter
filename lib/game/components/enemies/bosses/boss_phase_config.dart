@@ -18,7 +18,7 @@ class BossPhaseConfig {
   final double fireInterval;
 
   /// Abilities active during this phase
-  final List<BossAbility> abilities;
+  final List<EnemyAbility> abilities;
   
   /// Callback when entering this phase (for visual effects, spawning minions, etc.)
   final void Function()? onEnter;

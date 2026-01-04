@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -59,6 +58,10 @@ abstract class BaseBoss extends BaseEnemy {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    // Boses are bigger, set lower priority, so smaller enemies are seen
+    priority = 30;
+
     // Initialize first phase
     _applyPhase(0);
   }
@@ -67,7 +70,7 @@ abstract class BaseBoss extends BaseEnemy {
   void update(double dt) {
     super.update(dt);
 
-    // Update current phase abilities
+    // Update current phase abilities (boss-specific, phase-based)
     if (currentPhaseIndex < phases.length) {
       for (final ability in phases[currentPhaseIndex].abilities) {
         ability.update(dt, this);
@@ -219,34 +222,6 @@ abstract class BaseBoss extends BaseEnemy {
     Future.delayed(const Duration(milliseconds: 200), () {
       paint.colorFilter = null;
     });
-  }
-
-  /// Spawn minions (regular enemies) around the boss.
-  /// [enemyType] - type of enemy to spawn (e.g., 'basic_soldier', 'heavy_soldier')
-  /// [count] - number of enemies to spawn
-  /// [behavior] - optional movement behavior for spawned enemies
-  /// [spreadRadius] - how far from boss center to spawn (default 100)
-  void spawnMinions(String enemyType, int count, {MovementBehavior? behavior, double spreadRadius = 100.0}) {
-    final random = Random();
-
-    for (int i = 0; i < count; i++) {
-      // Calculate spawn position in a circle around the boss
-      final angle = (2 * pi * i / count) + random.nextDouble() * 0.3;
-      final offsetX = cos(angle) * spreadRadius;
-      final offsetY = sin(angle) * spreadRadius;
-      final spawnPos = position + Vector2(offsetX, offsetY);
-
-      // Convert spawn position to screen percentage for spawn system
-      final spawnXPercent = spawnPos.x / game.gameWidth;
-
-      // Use level manager to spawn (it handles enemy pools)
-      game.levelManager.spawnEnemyDirect(
-        enemyType: enemyType,
-        spawnXPercent: spawnXPercent.clamp(0.1, 0.9),
-        spawnYOffset: spawnPos.y,
-        behavior: behavior,
-      );
-    }
   }
 }
 

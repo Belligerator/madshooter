@@ -201,7 +201,7 @@ class MiniBossFactory {
     }
 
     // Parse abilities
-    final abilities = <BossAbility>[];
+    final abilities = <EnemyAbility>[];
     if (json['abilities'] != null) {
       final abilitiesJson = json['abilities'] as List<dynamic>;
       for (final abilityJson in abilitiesJson) {

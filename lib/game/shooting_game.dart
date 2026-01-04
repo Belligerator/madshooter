@@ -12,6 +12,7 @@ import 'components/player_slider.dart';
 import 'components/enemies/base_enemy.dart';
 import 'components/enemies/basic_soldier.dart';
 import 'components/enemies/heavy_soldier.dart';
+import 'components/enemies/summoner_soldier.dart';
 import 'components/enemies/enemy_pool.dart';
 import 'components/explosion_effect.dart';
 import 'game_config.dart';
@@ -34,10 +35,12 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
   // Pre-cached enemy sprites for performance
   late Sprite basicSoldierSprite;
   late Sprite heavySoldierSprite;
+  late Sprite summonerSoldierSprite;
 
   // Enemy object pools for performance
   late EnemyPool<BasicSoldier> basicSoldierPool;
   late EnemyPool<HeavySoldier> heavySoldierPool;
+  late EnemyPool<SummonerSoldier> summonerSoldierPool;
 
   // UI Layout constants
   static const double headerHeight = 80.0;
@@ -90,6 +93,7 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
     // Pre-cache enemy sprites for performance (load once, reuse for all enemies)
     basicSoldierSprite = await loadSprite('enemies/EnemyShip1_Base.webp');
     heavySoldierSprite = await loadSprite('enemies/Enemy_Tank_Base.webp');
+    summonerSoldierSprite = await loadSprite('enemies/Enemy_Tank_Base.webp'); // Reusing tank sprite
 
     // Set up world and camera
     final worldComponent = World();
@@ -140,6 +144,11 @@ class ShootingGame extends FlameGame with HasQuadTreeCollisionDetection, HasKeyb
       () => HeavySoldier(cachedSprite: heavySoldierSprite),
       worldComponent,
       initialSize: 20,
+    );
+    summonerSoldierPool = EnemyPool<SummonerSoldier>(
+      () => SummonerSoldier(cachedSprite: summonerSoldierSprite),
+      worldComponent,
+      initialSize: 10, // Fewer summoners needed
     );
 
     // Don't automatically load level here - let the GameScreen handle it

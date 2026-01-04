@@ -6,10 +6,13 @@ import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
 import 'package:madshooter/game/game_config.dart';
 import '../shooting_game.dart';
+import '../components/enemies/base_enemy.dart';
 import '../components/enemies/behaviors/behavior_factory.dart';
 import '../components/enemies/behaviors/movement_behavior.dart';
 import '../components/enemies/bosses/major/tank_boss.dart';
 import '../components/enemies/bosses/mini_boss.dart';
+import '../components/enemies/bosses/abilities/boss_ability.dart';
+import '../components/enemies/bosses/abilities/ability_factory.dart';
 import '../components/barrel.dart';
 import 'level_data.dart';
 import 'level_event.dart';
@@ -140,6 +143,18 @@ class LevelManager {
 
   String _generateGroupId() => 'group_${_groupIdCounter++}';
 
+  /// Parse abilities from JSON parameters
+  List<EnemyAbility> _parseAbilities(Map<String, dynamic> params) {
+    final abilities = <EnemyAbility>[];
+    if (params['abilities'] != null) {
+      final abilitiesJson = params['abilities'] as List<dynamic>;
+      for (final abilityJson in abilitiesJson) {
+        abilities.add(AbilityFactory.fromJson(abilityJson as Map<String, dynamic>));
+      }
+    }
+    return abilities;
+  }
+
   void _spawnEnemyEvent(Map<String, dynamic> params, double? spawnX) {
     final enemyType = params['enemy_type'] as String? ?? 'basic_soldier';
     final count = params['count'] as int? ?? 1;
@@ -147,6 +162,9 @@ class LevelManager {
     final dropUp = params['drop_up'] as int? ?? 0;
     final spawnInterval = (params['spawn_interval'] as num?)?.toDouble() ?? 1;
     final random = Random();
+
+    // Parse abilities for enemies
+    final abilities = _parseAbilities(params);
 
     // Create enemy group for this spawn event
     final groupId = _generateGroupId();
@@ -186,6 +204,7 @@ class LevelManager {
               spawnYOffset: yOffset,
               groupId: groupId,
               movementBehavior: movementBehavior,
+              abilities: abilities,
             );
             gameRef.trackEnemy(enemy);
             break;
@@ -196,6 +215,18 @@ class LevelManager {
               spawnYOffset: yOffset,
               groupId: groupId,
               movementBehavior: movementBehavior,
+              abilities: abilities,
+            );
+            gameRef.trackEnemy(enemy);
+            break;
+          case 'summoner_soldier':
+            // Use object pool for better performance
+            final enemy = gameRef.summonerSoldierPool.acquire(
+              spawnXPercent: spawnX,
+              spawnYOffset: yOffset,
+              groupId: groupId,
+              movementBehavior: movementBehavior,
+              abilities: abilities,
             );
             gameRef.trackEnemy(enemy);
             break;
@@ -308,38 +339,54 @@ class LevelManager {
     gameRef.showMessage(message);
   }
   
-  /// Spawn an enemy directly (used by bosses for spawning minions)
-  /// [enemyType] - 'basic_soldier' or 'heavy_soldier'
+  /// Spawn an enemy directly (used by abilities for spawning minions)
+  /// [enemyType] - 'basic_soldier', 'heavy_soldier', or 'summoner_soldier'
   /// [spawnXPercent] - 0.0-1.0 percentage of screen width
   /// [spawnYOffset] - Y position offset (can be absolute Y position for minion spawning)
   /// [behavior] - optional movement behavior
-  void spawnEnemyDirect({
+  /// [abilities] - optional abilities for the spawned enemy
+  /// Returns the spawned enemy, or null if spawn failed
+  /// Spawn enemy directly (used by abilities like spawn_minions)
+  /// [isSpawned] defaults to true - spawned enemies give no rewards to prevent farming
+  BaseEnemy? spawnEnemyDirect({
     required String enemyType,
     double? spawnXPercent,
     double spawnYOffset = 0.0,
     MovementBehavior? behavior,
+    List<EnemyAbility>? abilities,
+    bool isSpawned = true,
   }) {
-    totalEnemiesSpawned++;
-    
+    // Only count non-spawned enemies for star calculation (kill percentage)
+    if (!isSpawned) {
+      totalEnemiesSpawned++;
+    }
+
     switch (enemyType) {
       case 'basic_soldier':
         final enemy = gameRef.basicSoldierPool.acquire(
           spawnXPercent: spawnXPercent,
           spawnYOffset: spawnYOffset,
           movementBehavior: behavior,
+          abilities: abilities,
+          isSpawned: isSpawned,
         );
         gameRef.trackEnemy(enemy);
-        break;
+        return enemy;
       case 'heavy_soldier':
         final enemy = gameRef.heavySoldierPool.acquire(
           spawnXPercent: spawnXPercent,
           spawnYOffset: spawnYOffset,
           movementBehavior: behavior,
+          abilities: abilities,
+          isSpawned: isSpawned,
         );
         gameRef.trackEnemy(enemy);
-        break;
+        return enemy;
+      case 'summoner_soldier':
+        // Do not allow recursive minion spawning
       default:
         print('Unknown enemy type for direct spawn: $enemyType');
+        return null;
     }
   }
 

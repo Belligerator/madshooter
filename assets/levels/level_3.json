@@ -50,6 +50,30 @@
       "message": "Don't let up!"
     },
     {
+      "timestamp": 19.0,
+      "type": "spawn_enemy",
+      "enemy_type": "summoner_soldier",
+      "count": 1,
+      "spawn_x": 0.3,
+      "drop_up": 2,
+      "movement": "strategic",
+      "strategy": "hover",
+      "target_y": 0.25,
+      "ignore": false,
+      "_comment": "Summoner Soldier - Regular enemy with spawn_minions ability",
+      "abilities": [
+        {
+          "type": "spawn_minions",
+          "enemy_type": "basic_soldier",
+          "count": 2,
+          "interval": 5.0,
+          "spread_radius": 80.0,
+          "spawn_on_enter": true,
+          "max_total_enemies": 10
+        }
+      ]
+    },
+    {
       "timestamp": 20.0,
       "type": "spawn_enemy",
       "enemy_type": "heavy_soldier",
@@ -70,6 +94,36 @@
       "enemy_type": "heavy_soldier",
       "count": 6,
       "spawn_pattern": "spread"
+    },
+    {
+      "timestamp": 30.0,
+      "type": "spawn_mini_boss",
+      "spawn_x": 0.5,
+      "sprite": "enemies/Enemy_Tank_Base.webp",
+      "health": 600,
+      "width": 150,
+      "drop_up": 5,
+      "ignore": false,
+      "_comment": "Mini boss - 2 phases: hover+single -> track_player+spread",
+      "phases": [
+        {
+          "threshold": 1.0,
+          "movement": "strategic",
+          "strategy": "hover",
+          "target_y": 0.2,
+          "shooting": "single",
+          "fire_interval": 2.0
+        },
+        {
+          "threshold": 0.5,
+          "movement": "track_player",
+          "target_y": 0.2,
+          "reaction_speed": 0.1,
+          "shooting": "spread",
+          "bullet_count": 3,
+          "fire_interval": 1.5
+        }
+      ]
     },
     {
       "timestamp": 32.0,
@@ -124,6 +178,14 @@
       "count": 10,
       "spawn_pattern": "spread",
       "drop_up": 2
+    },
+    {
+      "timestamp": 70.0,
+      "type": "spawn_major_boss",
+      "boss_type": "tank_boss",
+      "spawn_x": 0.5,
+      "ignore": true,
+      "_comment": "Major boss - TankBoss with 3 phases: hover->track->orbit, single->single->spread"
     }
   ],
   "victory_conditions": {}

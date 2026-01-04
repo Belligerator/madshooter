@@ -29,7 +29,7 @@ class LevelData {
         .map((e) => LevelEvent.fromJson(e as Map<String, dynamic>))
         .toList();
     events.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    print('Loaded ${events} events for level ${json['levelId']}');
+
     return LevelData(
       levelId: json['levelId'] as int,
       name: json['name'] as String,

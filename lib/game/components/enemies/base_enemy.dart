@@ -8,6 +8,7 @@ import '../../shooting_game.dart';
 import '../upgrade_point.dart';
 import '../explosion_effect.dart';
 import 'behaviors/movement_behavior.dart';
+import 'bosses/abilities/boss_ability.dart';
 
 abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingGame>, CollisionCallbacks {
   static const double baseSpeed = 30.0;
@@ -33,6 +34,8 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   bool clampToScreenBounds; // Whether to clamp X position to screen bounds
   MovementBehavior? movementBehavior; // Optional choreography movement
   String? groupId; // Group ID for conditional drops - UP only drops when all group members killed
+  List<EnemyAbility> abilities; // Abilities active on this enemy
+  bool isSpawned = false; // True if spawned by ability (no rewards - prevents farming)
 
   // Sprite configuration (to be provided by subclasses)
   String spritePath;
@@ -43,9 +46,6 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   // Health bar rendering constants
   static const double _healthBarHeight = 4.0;
   static const double _healthBarYOffset = 10.0;
-
-  // Priority optimization - only recalculate when Y changes significantly
-  double _lastPriorityY = 0;
 
   // Callback for pool release (set by EnemyPool)
   void Function(BaseEnemy)? onPoolRelease;
@@ -65,6 +65,8 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     this.destroyedOnPlayerCollision = true,
     this.clampToScreenBounds = true,
     this.movementBehavior,
+    this.groupId,
+    this.abilities = const [],
   }) : currentHealth = maxHealth;
 
   // Abstract method: subclasses must define their own hitboxes
@@ -73,7 +75,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   @override
   Future<void> onLoad() async {
     super.onLoad();
-    debugMode = true;
+    // debugMode = true;
 
     // Use pre-cached sprite if available, otherwise load (fallback)
     sprite = cachedSprite ?? await game.loadSprite(spritePath);
@@ -116,6 +118,11 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
       roadRightBound: game.gameWidth - size.x / 2,
       getPlayerPosition: () => game.player.position,
     );
+
+    // Activate abilities (simulate phase enter for regular enemies)
+    for (final ability in abilities) {
+      ability.onPhaseEnter(this);
+    }
   }
 
   // Draw health bar directly on canvas (no child components needed)
@@ -163,15 +170,17 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
       position.y += getSpeed() * dt;
     }
 
+    // Update abilities
+    if (abilities.isNotEmpty) {
+      // print('BaseEnemy.update: Updating ${abilities.length} abilities');
+      for (final ability in abilities) {
+        ability.update(dt, this);
+      }
+    }
+
     // Clamp x within screen bounds (using center anchor)
     if (clampToScreenBounds) {
       position.x = position.x.clamp(size.x / 2, game.gameWidth - size.x / 2);
-    }
-
-    // Update priority only when Y changes by more than 20 pixels (optimization)
-    if ((position.y - _lastPriorityY).abs() > 10) {
-      priority = (50 + (position.y / game.gameHeight * 100).clamp(0.0, 100.0)).toInt();
-      _lastPriorityY = position.y;
     }
 
     // Remove enemy when it goes off-screen
@@ -199,16 +208,26 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     double spawnYOffset = 0.0,
     String? groupId,
     MovementBehavior? movementBehavior,
+    List<EnemyAbility>? abilities,
+    bool isSpawned = false,
   }) {
+    // Exit old abilities
+    for (final ability in this.abilities) {
+      ability.onPhaseExit(this);
+    }
+
     // Update spawn parameters
     this.spawnXPercent = spawnXPercent;
     this.spawnYOffset = spawnYOffset;
     this.groupId = groupId;
     this.movementBehavior = movementBehavior;
+    this.abilities = abilities ?? [];
+    this.isSpawned = isSpawned;
+    // print('BaseEnemy.activate: Set ${this.abilities.length} abilities');
 
     // Reset runtime state
     currentHealth = maxHealth;
-    _lastPriorityY = 0;
+    priority = 50;
 
     // Calculate spawn position
     final screenRight = game.gameWidth;
@@ -229,17 +248,31 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
       roadRightBound: game.gameWidth - size.x / 2,
       getPlayerPosition: () => game.player.position,
     );
+
+    // Activate new abilities
+    for (final ability in this.abilities) {
+      ability.onPhaseEnter(this);
+    }
   }
 
   /// Deactivate enemy and prepare for pool reuse
   void deactivate() {
+    // Exit abilities
+    for (final ability in abilities) {
+      ability.onPhaseExit(this);
+    }
     // Clear movement behavior to allow garbage collection
     movementBehavior = null;
     groupId = null;
+    abilities = [];
   }
 
   @override
   void onRemove() {
+    // Exit abilities
+    for (final ability in abilities) {
+      ability.onPhaseExit(this);
+    }
     super.onRemove();
     // Notify pool to release this enemy for reuse
     onPoolRelease?.call(this);
@@ -248,6 +281,7 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
   // Handle taking damage
   void takeDamage(int damage) {
     currentHealth -= damage;
+    priority++;
 
     // Health bar is drawn in render() based on currentHealth - no component update needed
 
@@ -263,6 +297,9 @@ abstract class BaseEnemy extends SpriteComponent with HasGameReference<ShootingG
     // Spawn explosion effect at enemy center
     final explosion = ExplosionEffect(origin: position.clone());
     game.world.add(explosion);
+
+    // Skip rewards for spawned enemies (prevent farming)
+    if (isSpawned) return;
 
     // Notify game about kill
     game.onSoldierKilled();

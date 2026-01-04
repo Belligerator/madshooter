@@ -2,7 +2,7 @@ import 'boss_ability.dart';
 import 'spawn_minions_ability.dart';
 
 class AbilityFactory {
-  static BossAbility fromJson(Map<String, dynamic> json) {
+  static EnemyAbility fromJson(Map<String, dynamic> json) {
     final type = json['type'] as String;
 
     switch (type) {
@@ -13,6 +13,7 @@ class AbilityFactory {
           interval: (json['interval'] as num?)?.toDouble() ?? 0.0,
           spreadRadius: (json['spread_radius'] as num?)?.toDouble() ?? 100.0,
           spawnOnEnter: json['spawn_on_enter'] as bool? ?? true,
+          maxTotalEnemies: json['max_total_enemies'] as int? ?? 10,
         );
       default:
         throw ArgumentError('Unknown ability type: $type');

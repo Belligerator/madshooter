@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'base_enemy.dart';
 import 'behaviors/movement_behavior.dart';
+import 'bosses/abilities/boss_ability.dart';
 
 /// Object pool for enemy reuse - eliminates GC pressure from constant create/destroy
 class EnemyPool<T extends BaseEnemy> {
@@ -22,6 +23,8 @@ class EnemyPool<T extends BaseEnemy> {
     double spawnYOffset = 0.0,
     String? groupId,
     MovementBehavior? movementBehavior,
+    List<EnemyAbility>? abilities,
+    bool isSpawned = false,
   }) {
     final T enemy;
     if (_available.isEmpty) {
@@ -44,6 +47,8 @@ class EnemyPool<T extends BaseEnemy> {
       spawnYOffset: spawnYOffset,
       groupId: groupId,
       movementBehavior: movementBehavior,
+      abilities: abilities,
+      isSpawned: isSpawned,
     );
 
     return enemy;
